@@ -7,19 +7,16 @@ CC = g++
 CFLAGS  = -g -Wall -Wextra
 
 # the build target executable:
-TARGET = src/main
+TARGET = test/data
 
 
 build: $(TARGET).cpp 
 	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS)
 
-# build with matrix.cpp as well
-test: src/main.cpp src/matrix.cpp
-	$(CC) src/main.cpp src/matrix.cpp -o $(TARGET) $(CFLAGS)
-
-
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) 
+	$(RM) $(TARGET)
+	
 
 clean:
 	$(RM) $(TARGET)
