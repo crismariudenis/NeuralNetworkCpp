@@ -1,10 +1,13 @@
 #pragma once
+
 #include <vector>
 #include <cmath>
 #include <cassert>
 #include <tuple>
+#include <functional>
+#include <random>
 
-#define printMatrix(x) std::cout << #x, x.printX();
+#define printMatrix(x) x.printX(#x);
 
 template <typename Type>
 class Matrix
@@ -23,10 +26,21 @@ public:
     }
     Matrix() : cols(0), rows(0) { shape = {rows, cols}; }
 
-    void init()
+    void rand()
     {
-        for (auto &x : data)
-            x = rand() % 10;
+
+        std::random_device rd{};
+        std::mt19937 gen{rd()};
+
+        // init Gaussian distr. w/ N(mean=0, stdev=1/sqrt(rows*cols))
+        Type n(rows*cols);
+        Type stdev{1 / sqrt(n)};
+        std::normal_distribution<Type> d{0, stdev};
+
+        // fill each element w/ draw from distribution
+        for (size_t r = 0; r < rows; ++r)
+            for (int c = 0; c < cols; ++c)
+                (*this)(r, c) = d(gen);
     }
     void print()
     {
@@ -77,17 +91,43 @@ public:
 
         return (output += (*this));
     }
+    Matrix &operator-=(Matrix &m)
+    {
+        assert(shape == m.shape);
+        for (size_t r = 0; r < rows; r++)
+            for (size_t c = 0; c < cols; c++)
+                (*this)(r, c) -= m(r, c);
+        return *this;
+    }
+    Matrix operator-(Matrix &m)
+    {
+        assert(shape == m.shape);
+        Matrix output = m;
+
+        return (output -= (*this));
+    }
+
+    Matrix activate(const std::function<Type(const Type &)> &function)
+    {
+        Matrix output((*this));
+        for (size_t r = 0; r < rows; r++)
+            for (size_t c = 0; c < cols; c++)
+                output(r, c) = function((*this)(r, c));
+        return output;
+    }
 
     // Only called with the printMatrix() macro
-    void printX()
+    void printX(std::string name="")
     {
-        std::cout << " = [\n";
+        if(!name.empty())
+        std::cout << name<<" =";
+        std::cout << " [\n";
         for (size_t r = 0; r < rows; r++, std::cout << '\n')
         {
-            std::cout << "  ";
+            std::cout << "   ";
             for (size_t c = 0; c < cols; c++)
                 std::cout << (*this)(r, c) << " ";
         }
-        std::cout << "]\n";
+        std::cout << "   ]\n\n";
     }
 };
