@@ -5,9 +5,8 @@
 typedef float T;
 int main()
 {
-    Matrix<T> m{4,4},x{4,4},n{4,4};
+    Matrix<T> m{4, 4}, x{4, 4}, n{4, 4};
 
-   
     m.rand();
     x.rand();
     printMatrix(x);
@@ -18,7 +17,8 @@ int main()
     printMatrix(x);
     printMatrix(y);
 
-    x = x.activate([](auto x){ return x / 2.0; });
+    x = x.activate([](auto x)
+                   { return x / 2.0; });
     printMatrix(x);
     x.printShape();
     return 0;

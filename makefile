@@ -7,7 +7,7 @@ CC = g++
 CFLAGS  = -g -Wall -Wextra
 
 # the build target executable:
-TARGET = test/data
+TARGET = test/nn
 
 
 build: $(TARGET).cpp 

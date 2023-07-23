@@ -9,14 +9,14 @@ struct DataPoint
 };
 
 template <typename T>
-class Data
+class DataSet
 {
 private:
     std::ifstream file;
 
 public:
     std::vector<DataPoint<T>> data;
-    Data(std::string filename)
+    DataSet(std::string filename)
     {
         file.open(filename.c_str());
     }
@@ -24,28 +24,44 @@ public:
     {
         return data.size();
     }
-    void addData(std::vector<T> input, std::vector<T> output)
+    void addData(std::vector<T> &input, std::vector<T> &output)
     {
         DataPoint<T> dataPoint;
         dataPoint.input = input;
         dataPoint.output = output;
         data.push_back(dataPoint);
     }
-    DataPoint<T> &getData(int index)
+    DataPoint<T> &getData(size_t index)
     {
         return data[index];
     }
-    void print()
+    void print() const
     {
         for (size_t i = 0; i < data.size(); i++)
         {
             std::cout << "Input: ";
-            for (auto &x : data[i].input)
+            for (const auto &x : data[i].input)
                 std::cout << x << " ";
             std::cout << "Output: ";
-            for (auto &x : data[i].output)
+            for (const auto &x : data[i].output)
                 std::cout << x << " ";
             std::cout << '\n';
+        }
+    }
+    void generateData()
+    {
+        const std::vector<std::vector<T>> t = {
+            {0, 0},
+            {1, 2},
+            {2, 4},
+            {3, 6},
+            {4, 8},
+        };
+        for (const auto &x : t)
+        {
+            std::vector<T> input{x[0]};
+            std::vector<T> output{x[1]};
+            this->addData(input, output);
         }
     }
 };

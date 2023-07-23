@@ -19,13 +19,12 @@ public:
     std::vector<Type> data;
     std::tuple<size_t, size_t> shape;
 
-    Matrix(size_t rows, size_t cols) : cols(cols), rows(rows)
+    Matrix(size_t cols, size_t rows) : cols(cols), rows(rows)
     {
-        shape = {rows, cols};
+        shape = {cols, rows};
         data.resize(cols * rows, Type());
     }
-    Matrix() : cols(0), rows(0) { shape = {rows, cols}; }
-
+    Matrix() : cols(0), rows(0) { shape = {cols, rows}; }
     void rand()
     {
 
@@ -33,7 +32,7 @@ public:
         std::mt19937 gen{rd()};
 
         // init Gaussian distr. w/ N(mean=0, stdev=1/sqrt(rows*cols))
-        Type n(rows*cols);
+        Type n(rows * cols);
         Type stdev{1 / sqrt(n)};
         std::normal_distribution<Type> d{0, stdev};
 
@@ -116,11 +115,10 @@ public:
         return output;
     }
 
-    // Only called with the printMatrix() macro
-    void printX(std::string name="")
+    void printX(std::string name = "")
     {
-        if(!name.empty())
-        std::cout << name<<" =";
+        if (!name.empty())
+            std::cout << name << " =";
         std::cout << " [\n";
         for (size_t r = 0; r < rows; r++, std::cout << '\n')
         {
@@ -131,3 +129,10 @@ public:
         std::cout << "   ]\n\n";
     }
 };
+static double random(double min , double max)
+{
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::uniform_real_distribution<double> d{min, max};
+    return d(gen);
+}
