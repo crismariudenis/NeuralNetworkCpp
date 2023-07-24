@@ -9,22 +9,22 @@
 
 #define printMatrix(x) x.printX(#x);
 
-template <typename Type>
+template <typename T>
 class Matrix
 {
 
-    size_t cols, rows;
+    size_t rows, cols;
 
 public:
-    std::vector<Type> data;
+    std::vector<T> data;
     std::tuple<size_t, size_t> shape;
 
-    Matrix(size_t cols, size_t rows) : cols(cols), rows(rows)
+    Matrix(size_t rows, size_t cols) : rows(rows), cols(cols)
     {
-        shape = {cols, rows};
-        data.resize(cols * rows, Type());
+        shape = {rows, cols};
+        data.resize(cols * rows, T());
     }
-    Matrix() : cols(0), rows(0) { shape = {cols, rows}; }
+    Matrix() : rows(0), cols(0) { shape = {rows, cols}; }
     void rand()
     {
 
@@ -32,14 +32,16 @@ public:
         std::mt19937 gen{rd()};
 
         // init Gaussian distr. w/ N(mean=0, stdev=1/sqrt(rows*cols))
-        Type n(rows * cols);
-        Type stdev{1 / sqrt(n)};
-        std::normal_distribution<Type> d{0, stdev};
+        T n(rows * cols);
+        T stdev{1 / sqrt(n)};
+        std::normal_distribution<T> d{0, stdev};
 
         // fill each element w/ draw from distribution
         for (size_t r = 0; r < rows; ++r)
             for (int c = 0; c < cols; ++c)
+            {
                 (*this)(r, c) = d(gen);
+            }
     }
     void print()
     {
@@ -53,7 +55,7 @@ public:
         std::cout << "Matrix Size([" << rows << ',' << cols << "])\n";
     }
 
-    Type &operator()(size_t row, size_t col)
+    T &operator()(size_t row, size_t col)
     {
         return data[row * cols + col];
     }
@@ -106,7 +108,7 @@ public:
         return (output -= (*this));
     }
 
-    Matrix activate(const std::function<Type(const Type &)> &function)
+    Matrix activate(const std::function<T(const T &)> &function)
     {
         Matrix output((*this));
         for (size_t r = 0; r < rows; r++)
@@ -129,7 +131,7 @@ public:
         std::cout << "   ]\n\n";
     }
 };
-static double random(double min , double max)
+static double random(double min, double max)
 {
     std::random_device rd{};
     std::mt19937 gen{rd()};

@@ -1,25 +1,21 @@
 #include <iostream>
 #include <vector>
-
 #include "../src/nn.h"
 #include "../src/dataset.h"
 
 typedef double T;
+DataSet<T> train{"test.txt"};
+
 int main()
 {
-    DataSet<T> train{"test.txt"};
-    train.generateData();
+    NN nn({2, 1});
 
-    NN nn({10, 3, 5});
+    train.generateData();
     nn.rand();
     nn.printWeights();
     nn.printBiases();
 
-    // float w = random(1, 2);
-    // for (const auto &x : train.data)
-    // {
-    //     T act = x.input[0] * w;
-    //     T exp = x.output[0];
-    //     std::cout<< "actual: " << act << ", expected: " <<exp << '\n';
-    // }
+    // train.getInput(1).printX("input0");
+
+    std::cout << "matrix cost: " << nn.cost(train) << '\n';
 }

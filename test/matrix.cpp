@@ -2,7 +2,7 @@
 
 #include "../src/matrix.h"
 
-typedef float T;
+typedef double T;
 int main()
 {
     Matrix<T> m{4, 4}, x{4, 4}, n{4, 4};
@@ -21,5 +21,6 @@ int main()
                    { return x / 2.0; });
     printMatrix(x);
     x.printShape();
+
     return 0;
 }
