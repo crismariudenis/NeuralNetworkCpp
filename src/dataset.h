@@ -56,8 +56,8 @@ public:
     {
         const std::vector<std::vector<T>> t = {
             {1, 1, 1},
-            {1, 0, 1},
-            {0, 1, 1},
+            {1, 0, 0},
+            {0, 1, 0},
             {0, 0, 0},
         };
 
@@ -71,7 +71,7 @@ public:
     Matrix<T> getInput(size_t index)
     {
         assert(index < data.size());
-        Matrix<T> m{1.0, data[0].input.size()};
+        Matrix<T> m{1, data[0].input.size()};
         for (int i = 0; i < data[index].input.size(); i++)
             m(0, i) = data[index].input[i];
         return m;

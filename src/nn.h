@@ -8,6 +8,8 @@ private:
     std::vector<size_t> arch;
     std::vector<Matrix<T>> biases;
     std::vector<Matrix<T>> weights;
+    const double eps = 1e-3;
+    const double rate = 1e-1;
 
 public:
     NN(std::vector<size_t> arch) : arch(arch)
@@ -35,9 +37,13 @@ public:
         for (size_t i = 0; i < weights.size(); i++)
         {
             // forward the input add activate using sigmoid function
-            input = (input * weights[i] + biases[i]).activate([](auto x)
-                                                              { return 1.0 / (1.0 + exp(-x)); });
+            input = (input * weights[i] + biases[i]).activate([](auto x){ return 1.0 / (1.0 + exp(-x)); });
         }
+        // std::cout << " forwards.out: ";
+        // for(auto x:input.data){
+        //     std::cout << x << " ";
+        // }
+        // std::cout << '\n';
         return input;
     }
     Matrix<T> forward(std::vector<T> v)
@@ -69,14 +75,41 @@ public:
             }
         }
         return cost / static_cast<T>(train.size());
+    }
+    void finiteDiff(DataSet<T> &train)
+    {
+        auto c = cost(train);
 
-        // finite difference on the weights
-        // for (auto &m : weights)
-        // {
-        //     for (auto &w : m.data)
-        //     {
-        //     }
-        // }
+        //
+        std::vector<Matrix<T>> W = weights;
+        for (size_t i = 0; i < weights.size(); i++)
+            for (size_t j = 0; j < weights[i].data.size(); j++)
+            {
+                weights[i].data[j] += eps;
+                // (f(x + eps) - f(x)) / eps
+                double dw = (cost(train) - c) / eps;
+
+                // reset it back
+                weights[i].data[j] -= eps;
+
+                W[i].data[j] -= rate * dw;
+            }
+
+        std::vector<Matrix<T>> B = biases;
+        for (size_t i = 0; i < biases.size(); i++)
+            for (size_t j = 0; j < biases[i].data.size(); j++)
+            {
+                biases[i].data[j] += eps;
+                // (f(x + eps) - f(x)) / eps
+                double db = (cost(train) - c) / eps;
+
+                // reset it back
+                biases[i].data[j] -= eps;
+
+                B[i].data[j] -= rate * db;
+            }
+        weights = W;
+        biases = B;
     }
 
     void printArch()
