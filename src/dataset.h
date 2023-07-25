@@ -55,9 +55,9 @@ public:
     void generateData()
     {
         const std::vector<std::vector<T>> t = {
-            {1, 1, 1},
-            {1, 0, 0},
-            {0, 1, 0},
+            {1, 1, 0},
+            {1, 0, 1},
+            {0, 1, 1},
             {0, 0, 0},
         };
 
@@ -68,12 +68,31 @@ public:
             this->addData(input, output);
         }
     }
-    Matrix<T> getInput(size_t index)
+    /// @brief
+    /// @param index testcase number
+    /// @return
+    Matrix<T> getInputMat(size_t index)
     {
         assert(index < data.size());
         Matrix<T> m{1, data[0].input.size()};
-        for (int i = 0; i < data[index].input.size(); i++)
+        for (size_t i = 0; i < data[index].input.size(); i++)
             m(0, i) = data[index].input[i];
         return m;
+    }
+    Matrix<T> getOutputMat(size_t index)
+    {
+        Matrix<T> m{1, data[0].output.size()};
+        for (size_t i = 0; i < data[index].output.size(); i++)
+            m(0, i) = data[index].output[i];
+        return m;
+    }
+    void testGetInput()
+    {
+        for (size_t j = 0; j < data.size(); j++, std::cout << '\n')
+            for (size_t i = 0; i < data[j].input.size(); i++)
+            {
+
+                std::cout << data[j].input[i];
+            }
     }
 };

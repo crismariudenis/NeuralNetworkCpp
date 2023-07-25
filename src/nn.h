@@ -37,35 +37,22 @@ public:
         for (size_t i = 0; i < weights.size(); i++)
         {
             // forward the input add activate using sigmoid function
-            input = (input * weights[i] + biases[i]).activate([](auto x){ return 1.0 / (1.0 + exp(-x)); });
+            input = (input * weights[i] + biases[i]).activate([](auto x)
+                                                              { return 1.0 / (1.0 + exp(-x)); });
         }
-        // std::cout << " forwards.out: ";
-        // for(auto x:input.data){
-        //     std::cout << x << " ";
-        // }
-        // std::cout << '\n';
         return input;
-    }
-    Matrix<T> forward(std::vector<T> v)
-    {
-        Matrix<T> m{1, v.size()};
-        m.data = v;
-        return forward(m);
     }
     T cost(DataSet<T> &train)
     {
         T cost = 0;
-        double eps = 1e-3;
-        double rate = 1e-3;
-
         for (size_t i = 0; i < train.size(); i++)
         {
             // actual value
-            Matrix<T> act = forward(train.getData(i).input);
+            Matrix<T> act = forward(train.getInputMat(i));
 
             // expected value
             Matrix<T> exp{1, train.getData(i).output.size()};
-            exp.data = train.getData(i).output;
+            exp = train.getOutputMat(i);
 
             assert(act.shape == exp.shape);
             for (size_t j = 0; j < act.data.size(); j++)

@@ -19,5 +19,8 @@ int main()
         std::vector<T> output{x[1]};
         train.addData(input, output);
     }
-    train.print();
+
+    train.getOutputMat(3).printX();
+
+    // train.print();
 }
