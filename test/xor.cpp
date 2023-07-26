@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "../src/nn.h"
+#include "../src/neuralnetwork.h"
 #include "../src/dataset.h"
 
 typedef double T;
@@ -13,10 +13,10 @@ int main()
     train.generateData();
     nn.rand();
 
-    for (size_t epoch = 1; epoch <= 100'000; epoch++)
+    for (size_t epoch = 1; epoch <= 50'000; epoch++)
     {
         nn.finiteDiff(train);
-        if (epoch % 10 == 0)
+        if (epoch % 50 == 0)
             std::cout << "cost: " << nn.cost(train) << '\n';
     }
 

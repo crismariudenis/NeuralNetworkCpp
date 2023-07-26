@@ -4,20 +4,18 @@ CC = g++
 #  -g      adds debugging information to the executable file
 #  -Wall   turns on most, but not all, compiler warnings
 #  -Wextra turns on even more compiler warnings
-CFLAGS  = -g -Wall -Wextra
-
-# the build target executable:
-TARGET = test/nn
+CFLAGS  =  -std=c++17 -I include/ -L lib/
+LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -pthread
 
 
-build: $(TARGET).cpp 
-	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS)
 
-run: $(TARGET)
-	./$(TARGET) 
-	$(RM) $(TARGET)
-	
+TARGET = test/gym
+
+run: $(TARGET).cpp 
+	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS) -I include/ -L lib/ ${LIBS}
+	./$(TARGET)
+	 $(RM) $(TARGET)
 
 clean:
-	$(RM) $(TARGET)
+	$(RM) *.exe
 
