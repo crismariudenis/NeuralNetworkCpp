@@ -86,7 +86,7 @@ public:
         double rectY = screenHeight / 4.0;
         double h = screenHeight / 2;
         double w = screenWidth / 2;
-        DrawRectangle(rectX, rectY, w, h, Color{245, 0, 0, 10});
+        // DrawRectangle(rectX, rectY, w, h, Color{245, 0, 0, 10});
 
         double offX = w / epoch;
         double offY = h / costs[0];
