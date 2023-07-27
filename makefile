@@ -4,7 +4,7 @@ CC = g++
 #  -g      adds debugging information to the executable file
 #  -Wall   turns on most, but not all, compiler warnings
 #  -Wextra turns on even more compiler warnings
-CFLAGS  =  -std=c++17 -I include/ -L lib/
+CFLAGS  =  -std=c++17 -O2 -I include/ -L lib/
 LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -pthread
 
 
