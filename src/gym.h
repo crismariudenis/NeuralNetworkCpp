@@ -3,6 +3,8 @@
 #include "neuralnetwork.h"
 #include "../include/raylib.h"
 #include <thread>
+#include <condition_variable>
+#include <mutex>
 template <typename T>
 class Gym
 {
@@ -19,6 +21,10 @@ private:
     std::vector<T> costs;
     nn::DataSet<T> data;
     bool paused = false;
+    bool restarted = false;
+
+    std::mutex m;
+    std::condition_variable cv;
 
 public:
     Gym(nn::NeuralNetwork &n) : n(n)
@@ -46,9 +52,23 @@ public:
 
     void computing()
     {
+
         for (epoch = 0; epoch < maxEpoch; epoch++)
         {
-            while (paused)
+            if (restarted)
+            {
+
+                // locks the main threads until
+                std::unique_lock lk(m);
+                // network resets
+                n.rand();
+                epoch = 0;
+                // processed = true;
+                lk.unlock();
+                cv.notify_one();
+                restarted = false;
+            }
+            while (paused && IsKeyUp(KEY_SPACE))
             {
             }
 
@@ -62,12 +82,26 @@ public:
         while (!WindowShouldClose())
         {
 
-            if (IsKeyPressed(KEY_SPACE))
-                paused = !paused;
-
             BeginDrawing();
             {
                 ClearBackground(backgroundColor);
+
+                if (IsKeyPressed(KEY_SPACE))
+                    paused = !paused;
+                if (IsKeyPressed(KEY_R))
+                {
+                    restarted = true;
+                    {
+                        std::lock_guard lk(m);
+                    }
+                    cv.notify_one();
+                    {
+                        std::unique_lock lk(m);
+                        // cv.wait(lk, []
+                        //         { return processed; });
+                    }
+                }
+
                 plotCost();
                 char buffer[64];
                 snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Cost: %f\n", epoch, maxEpoch, n.cost(data));
@@ -82,11 +116,10 @@ public:
         if (epoch == 0)
             return;
 
-        double rectX = 0; // should be 0
+        double rectX = 0;
         double rectY = screenHeight / 4.0;
         double h = screenHeight / 2;
         double w = screenWidth / 2;
-        // DrawRectangle(rectX, rectY, w, h, Color{245, 0, 0, 10});
 
         double offX = w / epoch;
         double offY = h / costs[0];
