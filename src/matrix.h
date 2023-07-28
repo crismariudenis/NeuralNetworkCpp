@@ -58,6 +58,8 @@ namespace nn
 
         T &operator()(size_t row, size_t col)
         {
+            assert(row < rows);
+            assert(col < cols);
             return data[row * cols + col];
         }
 
@@ -73,6 +75,9 @@ namespace nn
         }
         Matrix operator*(Matrix &m)
         {
+            if(cols!=m.rows){
+                std::cout <<"cols: {"<< cols << "}, m.rows: {" << m.rows << "}\n";
+            }
             assert(cols == m.rows);
             Matrix output = *this;
 

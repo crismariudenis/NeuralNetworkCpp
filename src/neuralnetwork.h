@@ -71,7 +71,6 @@ namespace nn
         {
             auto c = cost(train);
 
-            //
             std::vector<Matrix<T>> W = weights;
             for (size_t i = 0; i < weights.size(); i++)
                 for (size_t j = 0; j < weights[i].data.size(); j++)
@@ -131,8 +130,16 @@ namespace nn
             }
             std::cout << "]\n";
         }
-        std::vector<size_t>getArch(){
+        std::vector<size_t> getArch()
+        {
             return arch;
+        }
+        T getBias(size_t layer, size_t nr){
+            return biases[layer](0,nr);
+        }
+        T getWeight(size_t layer1,size_t node1, size_t node2)
+        {
+            return weights[layer1](node1, node2);
         }
     };
 }
