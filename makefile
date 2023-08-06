@@ -4,18 +4,20 @@ CC = g++
 #  -g      adds debugging information to the executable file
 #  -Wall   turns on most, but not all, compiler warnings
 #  -Wextra turns on even more compiler warnings
-CFLAGS  =  -std=c++17 -O2 -I include/ -L lib/
-LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -pthread
+CFLAGS  =  -g -Wall -Wextra -std=c++17 -O2
+LIBS = -lraylib -pthread
 
 
 
 TARGET = test/gym
 
 run: $(TARGET).cpp 
-	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS) -I include/ -L lib/ ${LIBS}
+	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS) ${LIBS}
 	./$(TARGET)
 	 $(RM) $(TARGET)
 
 clean:
 	$(RM) *.exe
 
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
