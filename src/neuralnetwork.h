@@ -135,11 +135,14 @@ namespace nn
             return arch;
         }
         T getBias(size_t layer, size_t nr){
-            return biases[layer](0,nr);
+            return biases[layer](0,nr); 
         }
         T getWeight(size_t layer1,size_t node1, size_t node2)
         {
             return weights[layer1](node1, node2);
+        }
+        T getRate(){
+            return rate;
         }
     };
 }

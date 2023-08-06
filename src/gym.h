@@ -18,22 +18,24 @@ namespace nn
         const int screenWidth = 16 * scale;
         const int screenHeight = 9 * scale;
         const char *windowName = "Neural Network";
-        size_t maxEpoch = 100;
+        size_t epochs = 100;
         size_t epoch = 0;
         std::vector<T> costs;
         nn::DataSet<T> data;
+
+        // for threads communication 
         bool paused = false;
         bool restarted = false;
+        bool closed = false;
 
         // For paussing the threads while the network randomises
         std::mutex m;
         std::condition_variable cv;
 
     public:
-        Gym(nn::NeuralNetwork &n, size_t maxEpoch = 0) : n(n), maxEpoch(maxEpoch)
+        Gym(nn::NeuralNetwork &n) : n(n)
         {
             setup();
-            costs.resize(maxEpoch);
         }
 
         void setup()
@@ -43,8 +45,11 @@ namespace nn
             SetTargetFPS(60);
         }
 
-        void train(nn::DataSet<T> train)
+        void train(nn::DataSet<T> train,size_t epochs)
         {
+            this->epochs = epochs;
+
+            costs.resize(epochs);
             data = train;
 
             // thread computing cause drawing is slow
@@ -56,7 +61,7 @@ namespace nn
         void computing()
         {
 
-            for (epoch = 0; epoch < maxEpoch; epoch++)
+            for (epoch = 0; epoch < epochs; epoch++)
             {
                 if (restarted)
                 {
@@ -70,6 +75,8 @@ namespace nn
                     cv.notify_one();
                     restarted = false;
                 }
+                if(closed)
+                    return;
                 while (paused && IsKeyUp(KEY_SPACE))
                 {
                 }
@@ -104,12 +111,13 @@ namespace nn
 
                     plotCost();
                     char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Cost: %f\n", epoch, maxEpoch, n.cost(data));
+                    snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs,n.getRate(), n.cost(data));
                     DrawText(buffer, 5, 0, 30, WHITE);
                     drawNetwork();
                 }
                 EndDrawing();
             }
+            closed = true;
             CloseWindow();
         }
         void plotCost()

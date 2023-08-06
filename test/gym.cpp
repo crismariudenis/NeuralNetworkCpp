@@ -12,8 +12,8 @@ int main()
     train.generateData();
     ///-----------------------------------
 
-    nn::Gym<T> gym(n, 500'000);
-    gym.train(train);
+    nn::Gym<T> gym(n);
+    gym.train(train,100'000);
 
     for (size_t i = 0; i < train.size(); i++)
     {
@@ -23,6 +23,6 @@ int main()
         std::cout << std::fixed << test[0] + 2 * test[1] + 4 * test[2] + 8 * test[3] << " + "
                   << test[4] + 2 * test[5] + 4 * test[6] + 8 * test[7] << " = " << acc.data[0] + 2 * acc.data[1] + 4 * acc.data[2] + 8 * acc.data[3] + 16 * acc.data[4] << '\n';
     }
-    n.printWeights();
-    n.printBiases();
+    // n.printWeights();
+    // n.printBiases();
 }
