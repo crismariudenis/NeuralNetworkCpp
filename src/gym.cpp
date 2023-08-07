@@ -6,14 +6,16 @@ typedef double T;
 int main()
 {
     //---- Setup network and data -------
-    nn::NeuralNetwork n{{8, 16, 5}};
+    nn::NeuralNetwork n{{8, 16, 5}, 1, 1e-3};
     n.rand();
+    // n.rate
+    // n.
     nn::DataSet train;
     train.generateData();
     ///-----------------------------------
 
     nn::Gym gym(n);
-    gym.train(train, 100'000);
+    gym.train(train, 10'000);
 
     for (size_t i = 0; i < train.size(); i++)
     {

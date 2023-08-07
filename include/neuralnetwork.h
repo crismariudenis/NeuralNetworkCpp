@@ -11,12 +11,12 @@ namespace nn
         std::vector<size_t> arch;
         std::vector<Matrix> biases;
         std::vector<Matrix> weights;
-        const double eps = 1e-3;
-        const double rate = 1e-1;
+        const double rate;
+        const double eps;
 
     public:
-        NeuralNetwork(std::vector<size_t> arch);
-
+        NeuralNetwork(std::vector<size_t> arch) : NeuralNetwork(arch, 1e-1, 1e-3){};
+        NeuralNetwork(std::vector<size_t> arch, double rate, double eps);
         void rand();
         Matrix forward(Matrix input);
         T cost(DataSet &train);
@@ -31,8 +31,7 @@ namespace nn
         T getWeight(size_t layer1, size_t node1, size_t node2);
         T getRate();
     };
-
-    NeuralNetwork::NeuralNetwork(std::vector<size_t> arch) : arch(arch)
+    NeuralNetwork::NeuralNetwork(std::vector<size_t> arch, double rate, double eps) : arch(arch), rate(rate), eps(eps)
     {
         weights.resize(arch.size() - 1);
         biases.resize(arch.size() - 1);
@@ -42,7 +41,7 @@ namespace nn
         for (size_t i = 0; i < arch.size() - 1; i++)
             biases[i] = Matrix{1, arch[i + 1]};
     }
-   
+
     void NeuralNetwork::rand()
     {
         for (auto &w : weights)
@@ -117,7 +116,7 @@ namespace nn
         weights = W;
         biases = B;
     }
-  
+
     void NeuralNetwork::printArch()
     {
         std::cout << "NeuralNetwork Arch([";
@@ -145,7 +144,7 @@ namespace nn
         }
         std::cout << "]\n";
     }
-  
+
     std::vector<size_t> NeuralNetwork::getArch()
     {
         return arch;

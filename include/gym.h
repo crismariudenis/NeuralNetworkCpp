@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "neuralnetwork.h"
-#include "../include/raylib.h"
+#include "raylib.h"
 #include <thread>
 #include <condition_variable>
 #include <mutex>
@@ -49,6 +49,18 @@ namespace nn
     {
         setup();
     }
+    void Gym::train(nn::DataSet train, size_t epochs)
+    {
+        this->epochs = epochs;
+
+        costs.resize(epochs);
+        data = train;
+
+        // thread computing cause drawing is slow
+        std::thread t(&Gym::computing, this);
+        drawing();
+        t.join();
+    }
 
     void Gym::computing()
     {
@@ -82,18 +94,6 @@ namespace nn
         SetTraceLogLevel(LOG_ERROR);
         InitWindow(screenWidth, screenHeight, windowName);
         SetTargetFPS(60);
-    }
-    void Gym::train(nn::DataSet train, size_t epochs)
-    {
-        this->epochs = epochs;
-
-        costs.resize(epochs);
-        data = train;
-
-        // thread computing cause drawing is slow
-        std::thread t(&Gym::computing, this);
-        drawing();
-        t.join();
     }
     void Gym::drawing()
     {
@@ -131,10 +131,10 @@ namespace nn
     }
     void Gym::drawNetwork()
     {
-        float rectX = screenWidth / 2;
-        float rectY = screenHeight / 4;
-        float h = screenHeight / 2;
+        float h = screenHeight / 1.5;
         float w = screenWidth / 2.5;
+        float rectX = screenWidth / 2;
+        float rectY = (screenHeight - h) / 2;
         float padX = w / 20;
         float padY = 10;
         rectX += padX;
@@ -185,9 +185,9 @@ namespace nn
             return;
 
         double rectX = 0;
-        double rectY = screenHeight / 4.0;
-        double h = screenHeight / 2;
+        double h = screenHeight / 1.5;
         double w = screenWidth / 2;
+        double rectY = (screenHeight - h) / 2;
 
         double offX = w / epoch;
         double offY = h / costs[0];
