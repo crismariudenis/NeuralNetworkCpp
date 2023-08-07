@@ -9,7 +9,7 @@ LIBS = -lraylib -pthread
 
 
 
-TARGET = test/gym
+TARGET = src/gym
 
 run: $(TARGET).cpp 
 	$(CC) $(TARGET).cpp  -o $(TARGET) $(CFLAGS) ${LIBS}
