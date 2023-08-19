@@ -6,7 +6,6 @@
 #include <tuple>
 #include <functional>
 #include <random>
-
 #define printMatrix(x) x.printX(#x);
 namespace nn
 {
@@ -24,6 +23,7 @@ namespace nn
         Matrix();
 
         void rand();
+        void fill(T value);
         Matrix activate(const std::function<T(const T &)> &function);
 
         T &operator()(size_t row, size_t col);
@@ -45,7 +45,7 @@ namespace nn
         data.resize(cols * rows, T());
     }
     Matrix::Matrix() : rows(0), cols(0) { shape = {rows, cols}; }
-  
+
     void Matrix::rand()
     {
 
@@ -64,6 +64,10 @@ namespace nn
                 (*this)(r, c) = d(gen);
             }
     }
+    void Matrix::fill(T value)
+    {
+        std::fill(data.begin(), data.end(), value);
+    }
     Matrix Matrix::activate(const std::function<T(const T &)> &function)
     {
         Matrix output((*this));
@@ -72,7 +76,7 @@ namespace nn
                 output(r, c) = function((*this)(r, c));
         return output;
     }
-   
+
     T &Matrix::operator()(size_t row, size_t col)
     {
         assert(row < rows);
@@ -130,8 +134,6 @@ namespace nn
 
         return (output -= (*this));
     }
- 
-
     void Matrix::printX(std::string name = "")
     {
         if (!name.empty())
