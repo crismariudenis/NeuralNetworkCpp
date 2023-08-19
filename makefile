@@ -2,15 +2,16 @@
 #  -Wall   turns on most, but not all, compiler warnings
 #  -Wextra turns on even more compiler warnings
 CC = g++
-CFLAGS  =  -std=c++17 -O2 -I include/ -L lib/
-LIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -pthread
+CFLAGS  = -g -std=c++17 -O2 -I include/ -L lib/
+LIBS = -lraylib -pthread
 
-FILE = gym
+FILE = adder
 TARGET = src/$(FILE)
 EXECUTABLE=build/$(FILE)
 
 run: build
 	./$(EXECUTABLE)
+	rm $(EXECUTABLE)
 	
 build: $(EXECUTABLE)
 
@@ -20,6 +21,6 @@ $(EXECUTABLE): $(TARGET).cpp
 
 
 clean:
-	$(RM) build/*.exe	
+	$(RM) build/*	
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
