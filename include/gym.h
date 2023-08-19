@@ -86,7 +86,11 @@ namespace nn
             }
 
             costs[epoch] = n.cost(data);
+#if 0
             n.finiteDiff(data);
+#else
+            n.backProp(data);
+#endif
         }
     }
     void Gym::setup()
@@ -120,7 +124,7 @@ namespace nn
 
                 plotCost();
                 char buffer[64];
-                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.getRate(), n.cost(data));
+                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.cost(data));
                 DrawText(buffer, 5, 0, 30, WHITE);
                 drawNetwork();
             }
@@ -159,7 +163,7 @@ namespace nn
             for (size_t a = 0; a < arch[l]; a++)
                 for (size_t b = 0; b < arch[l + 1]; b++)
                 {
-                    double val = n.getWeight(l, a, b);
+                    T val = n.getWeight(l, a, b);
                     auto sigVal = 1 / (1 + exp(-val));
                     highColor.a = floor(255.0 * sigVal);
                     DrawLineEx(nodes[l][a], nodes[l + 1][b], 2, ColorAlphaBlend(lowColor, highColor, WHITE));
@@ -172,7 +176,7 @@ namespace nn
                     DrawCircle(nodes[i][j].x, nodes[i][j].y, 10, GRAY);
                 else
                 {
-                    double val = n.getBias(i - 1, j);
+                    T val = n.getBias(i - 1, j);
                     auto sigVal = 1 / (1 + exp(-val));
                     highColor.a = floor(255.f * sigVal);
                     DrawCircle(nodes[i][j].x, nodes[i][j].y, 10, ColorAlphaBlend(lowColor, highColor, WHITE));
@@ -184,15 +188,15 @@ namespace nn
         if (epoch == 0)
             return;
 
-        double rectX = 0;
-        double h = screenHeight / 1.5;
-        double w = screenWidth / 2;
-        double rectY = (screenHeight - h) / 2;
+        T rectX = 0;
+        T h = screenHeight / 1.5;
+        T w = screenWidth / 2;
+        T rectY = (screenHeight - h) / 2;
 
-        double offX = w / epoch;
-        double offY = h / costs[0];
-        double lastX = 0;
-        double lastY = 0;
+        T offX = w / epoch;
+        T offY = h / costs[0];
+        T lastX = 0;
+        T lastY = 0;
 
         // Base line
         DrawRectangle(0, rectY + h, w, 2, WHITE);
@@ -207,5 +211,6 @@ namespace nn
                 lastY = (costs[0] - costs[i]) * offY;
             }
         }
+
     }
 }
