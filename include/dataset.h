@@ -28,7 +28,6 @@ namespace nn
         void addData(std::vector<T> &input, std::vector<T> &output);
         void generateData();
 
-
         DataPoint &getData(size_t index);
         Matrix getInputMat(size_t index);
         Matrix getOutputMat(size_t index);
@@ -93,7 +92,7 @@ namespace nn
         //     std::vector<T> output{x[2]};
         //     this->addData(input, output);
         // }
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 60; i++)
         {
             int a = rand() % 8;
             int b = rand() % 8;
@@ -112,13 +111,13 @@ namespace nn
                 output.push_back(((a + b) >> j) & 1);
             this->addData(input, output);
         }
+        
     }
     Matrix DataSet::getInputMat(size_t index)
     {
         assert(index < data.size());
         Matrix m{1, data[0].input.size()};
-        for (size_t i = 0; i < data[index].input.size(); i++)
-            m(0, i) = data[index].input[i];
+        m.data = data[index].input;
         return m;
     }
     Matrix DataSet::getOutputMat(size_t index)
