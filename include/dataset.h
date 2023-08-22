@@ -27,10 +27,12 @@ namespace nn
         size_t size();
         void addData(std::vector<T> &input, std::vector<T> &output);
         void generateData();
+        void shuffle();
 
         DataPoint &getData(size_t index);
         Matrix getInputMat(size_t index);
         Matrix getOutputMat(size_t index);
+        DataSet getBatch(size_t begin, size_t size);
 
         void print() const;
     };
@@ -86,32 +88,38 @@ namespace nn
             {0, 0, 0},
         };
 
-        // for (const auto &x : t)
-        // {
-        //     std::vector<T> input{x[0], x[1]};
-        //     std::vector<T> output{x[2]};
-        //     this->addData(input, output);
-        // }
-        for (int i = 0; i < 60; i++)
+        for (const auto &x : t)
         {
-            int a = rand() % 8;
-            int b = rand() % 8;
-            std::vector<T> input;
-            // add a and b 's bits
-
-            for (int j = 0; j < 4; j++)
-                input.push_back((a >> j) & 1);
-
-            for (int j = 0; j < 4; j++)
-                input.push_back((b >> j) & 1);
-
-            std::vector<T> output;
-            // add a + b 's bits
-            for (int j = 0; j < 5; j++)
-                output.push_back(((a + b) >> j) & 1);
+            std::vector<T> input{x[0], x[1]};
+            std::vector<T> output{x[2]};
             this->addData(input, output);
         }
+        // for (int i = 0; i < 60; i++)
+        // {
+        //     int a = rand() % 8;
+        //     int b = rand() % 8;
+        //     std::vector<T> input;
+        //     // add a and b 's bits
+
+        //     for (int j = 0; j < 4; j++)
+        //         input.push_back((a >> j) & 1);
+
+        //     for (int j = 0; j < 4; j++)
+        //         input.push_back((b >> j) & 1);
+
+        //     std::vector<T> output;
+        //     // add a + b 's bits
+        //     for (int j = 0; j < 5; j++)
+        //         output.push_back(((a + b) >> j) & 1);
+        //     this->addData(input, output);
+        // }
         
+    }
+    void DataSet::shuffle(){
+        std::random_device rd;
+        std::mt19937 g(rd());
+        
+        std::shuffle(data.begin(), data.end(),g);
     }
     Matrix DataSet::getInputMat(size_t index)
     {
@@ -127,5 +135,8 @@ namespace nn
             m(0, i) = data[index].output[i];
         return m;
     }
-
+    DataSet DataSet::getBatch(size_t begin, size_t size){
+        assert(begin + size <= data.size());
+        //std::span :)???
+    }
 }
