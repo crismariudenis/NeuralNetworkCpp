@@ -90,7 +90,6 @@ namespace nn
             n.train(ds);
 
         }
-        exit(0);
     }
     void Gym::setup()
     {

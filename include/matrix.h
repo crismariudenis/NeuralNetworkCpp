@@ -6,6 +6,7 @@
 #include <tuple>
 #include <functional>
 #include <random>
+
 #define printMatrix(x) x.printX(#x);
 namespace nn
 {
