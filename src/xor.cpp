@@ -14,18 +14,30 @@ int main()
     n.rand();
     // n.rate
     // n.
-    nn::DataSet train;
-    train.generateData();
+    nn::DataSet ds;
     ///-----------------------------------
+    const std::vector<std::vector<T>> t = {
+        {1, 1, 0},
+        {1, 0, 1},
+        {0, 1, 1},
+        {0, 0, 0},
+    };
 
-    nn::Gym gym(n);
-    gym.train(train, 100'000);
-
-    for (size_t i = 0; i < train.size(); i++)
+    for (const auto &x : t)
     {
-        nn::Matrix acc = n.forward(train.getInputMat(i));
-        std::vector<T> exp = train.getData(i).output;
-#define test train.getInputMat(i).data
+        std::vector<T> input{x[0], x[1]};
+        std::vector<T> output{x[2]};
+        ds.addData(input, output);
+    }
+    ///-----------------------------------
+    nn::Gym gym(n);
+    gym.train(ds, 100'000);
+
+    for (size_t i = 0; i < ds.size(); i++)
+    {
+        nn::Matrix acc = n.forward(ds.getInputMat(i));
+        std::vector<T> exp = ds.getData(i).output;
+#define test ds.getInputMat(i).data
         std::cout << std::fixed << test[0] << " ^ " << test[1] << " = " << acc.data[0] << '\n';
     }
     n.printWeights();
