@@ -24,7 +24,7 @@ namespace nn
         size_t epochs = 100;
         size_t epoch = 0;
         std::vector<T> costs;
-        nn::DataSet data;
+        nn::DataSet ds;
 
         // For threads communication
         bool paused = false;
@@ -39,7 +39,7 @@ namespace nn
         Gym(nn::NeuralNetwork &n);
 
         void setup();
-        void train(nn::DataSet train, size_t epochs);
+        void train(nn::DataSet ds, size_t epochs);
         void computing();
         void drawing();
         void plotCost();
@@ -49,12 +49,12 @@ namespace nn
     {
         setup();
     }
-    void Gym::train(nn::DataSet train, size_t epochs)
+    void Gym::train(nn::DataSet ds, size_t epochs)
     {
         this->epochs = epochs;
+        this->ds = ds;
 
         costs.resize(epochs);
-        data = train;
 
         // thread computing cause drawing is slow
         std::thread t(&Gym::computing, this);
@@ -71,7 +71,7 @@ namespace nn
             {
 
                 // locks the main threads until
-                std::unique_lock lk(m);
+                std::unique_lock<std::mutex> lk(m);
                 // network resets
                 n.rand();
                 epoch = 0;
@@ -85,13 +85,12 @@ namespace nn
             {
             }
 
-            costs[epoch] = n.cost(data);
-#if 0
-            n.finiteDiff(data);
-#else
-            n.backProp(data);
-#endif
+            costs[epoch] = n.cost(ds);
+
+            n.train(ds);
+
         }
+        exit(0);
     }
     void Gym::setup()
     {
@@ -114,21 +113,22 @@ namespace nn
                 {
                     restarted = true;
                     {
-                        std::lock_guard lk(m);
+                        std::lock_guard<std::mutex> lk(m);
                     }
                     cv.notify_one();
                     {
-                        std::unique_lock lk(m);
+                        std::unique_lock<std::mutex> lk(m);
                     }
                 }
 
                 plotCost();
                 char buffer[64];
-                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.cost(data));
+                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.cost(ds));
                 DrawText(buffer, 5, 0, 30, WHITE);
                 drawNetwork();
             }
             EndDrawing();
+       
         }
         closed = true;
         CloseWindow();
@@ -211,6 +211,5 @@ namespace nn
                 lastY = (costs[0] - costs[i]) * offY;
             }
         }
-
     }
 }

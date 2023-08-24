@@ -16,13 +16,16 @@ namespace nn
     public:
         double rate = 1;
         double eps = 1e-3;
+        size_t nrSamples = 1;
         NeuralNetwork(std::vector<size_t> arch);
         void rand();
         Matrix forward(Matrix input);
-        T cost(DataSet &train);
+        T cost(DataSet &ds);
 
-        void backProp(DataSet &train);
-        void finiteDiff(DataSet &train);
+        void train(DataSet &ds);
+        template <typename Iterator>
+        void backProp(Iterator start, Iterator end);
+        void finiteDiff(DataSet &ds);
 
         void printArch();
         void printWeights();
@@ -62,24 +65,24 @@ namespace nn
             // forward the input add activate using sigmoid function
             activations[i] = input;
             input = (input * weights[i] + biases[i]).activate([](auto x)
-                                                                       { return 1.0 / (1.0 + exp(-x)); });
+                                                              { return 1.0 / (1.0 + exp(-x)); });
             // Sussy behaviour if I replace input with activations
         }
         activations.back() = input;
 
         return input;
     }
-    T NeuralNetwork::cost(DataSet &train)
+    T NeuralNetwork::cost(DataSet &ds)
     {
         T cost = 0;
-        for (size_t i = 0; i < train.size(); i++)
+        for (size_t i = 0; i < ds.size(); i++)
         {
             // actual value
-            Matrix act = forward(train.getInputMat(i));
+            Matrix act = forward(ds.getInputMat(i));
 
             // expected value
-            Matrix exp{1, train.getData(i).output.size()};
-            exp = train.getOutputMat(i);
+            Matrix exp{1, ds.getData(i).output.size()};
+            exp = ds.getOutputMat(i);
 
             for (size_t j = 0; j < act.data.size(); j++)
             {
@@ -87,52 +90,73 @@ namespace nn
                 cost += d * d;
             }
         }
-        return cost / static_cast<T>(train.size());
+        return cost / static_cast<T>(ds.size());
     }
-    void NeuralNetwork::backProp(DataSet &train)
+    void NeuralNetwork::train(DataSet &ds)
     {
-        nn::NeuralNetwork g(this->arch);
+        assert(nrSamples <= ds.size());
+        auto start = ds.data.begin();
+        auto end = ds.data.end();
+        size_t remaining = ds.size();
 
-        // i = current sample
-        // l = current layer
-        // j = current activation
-        // k = previous activation
-        size_t n = train.size();
-        for (size_t i = 0; i < n; i++)
+        // Stochastic Gradient Descent
+        // dividing the dataset in equal batches
+        for (size_t i = 0; i < nrSamples; i++)
         {
+            size_t sampleSize = remaining / (nrSamples - i);
+            backProp(start, std::min(end, start + sampleSize));
+            start += sampleSize;
+            remaining -= sampleSize;
+        }
+    }
+    template <typename Iterator>
+    void NeuralNetwork::backProp(Iterator start, Iterator end)
+    {
+        assert(start < end);
+        nn::NeuralNetwork g(this->arch);
+        size_t n = end - start;
+        // l = current layer
+        // i = current activation
+        // j = previous activation
+        for (Iterator it = start; it != end; ++it)
+        {
+            DataPoint &dp = *it;
+
             // expected value
-            Matrix exp{1, train.getData(i).output.size()};
-            exp = train.getOutputMat(i);
-            forward(train.getInputMat(i));
+            Matrix exp{1, dp.output.size()};
+            exp = dp.getOutputMat();
+
+            forward(dp.getInputMat());
+            // return;
 
             // reset the activations
             for (auto &a : g.activations)
                 a.fill(0);
 
-            for (size_t j = 0; j < exp.data.size(); j++)
-                g.activations.back()(0, j) = activations.back()(0, j) - exp(0, j);
+            for (size_t i = 0; i < exp.data.size(); i++)
+                g.activations.back()(0, i) = activations.back()(0, i) - exp(0, i);
 
             for (size_t l = arch.size() - 1; l > 0; l--)
             {
-                for (size_t j = 0; j < arch[l]; j++)
+                for (size_t i = 0; i < arch[l]; i++)
                 {
-                    // j = weight matrix row
-                    // k = weight matrix col
-                    T a = activations[l](0, j);
-                    T da = g.activations[l](0, j);
+                    // i = weight matrix row
+                    // j = weight matrix col
+                    T a = activations[l](0, i);
+                    T da = g.activations[l](0, i);
                     T qa = a * (1 - a);
-                    g.biases[l - 1](0, j) += 2 * da * qa;
-                    for (size_t k = 0; k < arch[l - 1]; k++)
+                    g.biases[l - 1](0, i) += 2 * da * qa;
+                    for (size_t j = 0; j < arch[l - 1]; j++)
                     {
-                        T pa = activations[l - 1](0, k);
-                        T w = weights[l - 1](k, j);
-                        g.weights[l - 1](k, j) += 2 * da * qa * pa;
-                        g.activations[l - 1](0, k) += 2 * da * qa * w;
+                        T pa = activations[l - 1](0, j);
+                        T w = weights[l - 1](j, i);
+                        g.weights[l - 1](j, i) += 2 * da * qa * pa;
+                        g.activations[l - 1](0, j) += 2 * da * qa * w;
                     }
                 }
             }
         }
-        
+
         for (size_t i = 0; i < g.weights.size(); i++)
         {
             // sussy use of activate function :D
@@ -159,10 +183,10 @@ namespace nn
             for (size_t j = 0; j < biases[i].data.size(); j++)
                 biases[i].data[j] -= rate * g.biases[i].data[j];
     }
-    void NeuralNetwork::finiteDiff(DataSet &train)
+    void NeuralNetwork::finiteDiff(DataSet &ds)
     {
         // the original cost
-        T c = cost(train);
+        T c = cost(ds);
 
         std::vector<Matrix> W = weights;
         for (size_t i = 0; i < weights.size(); i++)
@@ -174,7 +198,7 @@ namespace nn
                 weights[i].data[j] += eps;
 
                 // (f(x + eps) - f(x)) / eps
-                T dw = (cost(train) - c) / eps;
+                T dw = (cost(ds) - c) / eps;
 
                 // reset it back
                 weights[i].data[j] = oldWeight;
@@ -192,7 +216,7 @@ namespace nn
                 biases[i].data[j] += eps;
 
                 // (f(x + eps) - f(x)) / eps
-                T db = (cost(train) - c) / eps;
+                T db = (cost(ds) - c) / eps;
 
                 // reset it back
                 biases[i].data[j] = oldBias;
