@@ -7,7 +7,6 @@
 #include <mutex>
 namespace nn
 {
-    typedef double T;
 
     class Gym
     {
@@ -87,8 +86,7 @@ namespace nn
 
             costs[epoch] = n.cost(ds);
 
-            n.train(ds);
-
+           n.train(ds);
         }
     }
     void Gym::setup()
@@ -127,7 +125,6 @@ namespace nn
                 drawNetwork();
             }
             EndDrawing();
-       
         }
         closed = true;
         CloseWindow();

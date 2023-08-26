@@ -5,7 +5,6 @@
 #include "matrix.h"
 namespace nn
 {
-    typedef double T;
     struct DataPoint
     {
         std::vector<T> input;
