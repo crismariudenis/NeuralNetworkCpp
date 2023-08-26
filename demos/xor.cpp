@@ -8,9 +8,6 @@ int main()
     //---- Setup network and data -------
     nn::NeuralNetwork n{{2,2, 1}};
 
-    n.rate = 1;
-    n.eps = 1e-3;
-
     n.rand();
     // n.rate
     // n.
