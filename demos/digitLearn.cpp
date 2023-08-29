@@ -3,6 +3,7 @@
 #include "../include/gym.h"
 #include "../include/neuralnetwork.h"
 Image image;
+#define UPSCALE
 void generateData(nn::DataSet &ds)
 {
     image = LoadImage("./data/9.png"); // Load image data into CPU memory (RAM)
@@ -16,10 +17,12 @@ void generateData(nn::DataSet &ds)
             nn::T val = colors[index].r;
             if (val != 0)
                 nr = 3 - (int)std::log10(val);
-            std::cout << val;
+            if (!val)
+                std::cout << " ";
+            else
+                std::cout << val;
             for (int i = 0; i < nr; i++)
                 std::cout << " ";
-            std::cout << " ";
 
             std::vector<nn::T> input(2);
             input[0] = float(x) / (image.width - 1.0);
@@ -44,24 +47,27 @@ void display(nn::NeuralNetwork &n)
             int nr = 3;
             if (val != 0)
                 nr = 3 - (int)std::log10(val);
-            std::cout << val;
+            if (!val)
+                std::cout << " ";
+            else
+                std::cout << val;
             for (int i = 0; i < nr; i++)
                 std::cout << " ";
-            std::cout << " ";
         }
 }
 int main()
 {
-    nn::NeuralNetwork n{{2, 28, 1}};
+    nn::NeuralNetwork n{{2, 20, 1}};
     n.rand();
-    n.nrSamples = 2 * 28;
+    n.nrSamples = 28;
+
+    nn::Gym gym(n);
 
     nn::DataSet ds;
     generateData(ds);
     ds.shuffle();
 
-    nn::Gym gym(n);
-    gym.train(ds, 30'000);
+    gym.train(ds, 50'000);
 
     display(n);
 }
