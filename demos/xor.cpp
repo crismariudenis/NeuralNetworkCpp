@@ -3,16 +3,8 @@
 #include "../include/neuralnetwork.h"
 
 typedef double T;
-int main()
+void generateData(nn::DataSet &ds)
 {
-    //---- Setup network and data -------
-    nn::NeuralNetwork n{{2,2, 1}};
-
-    n.rand();
-    // n.rate
-    // n.
-    nn::DataSet ds;
-    ///-----------------------------------
     const std::vector<std::vector<T>> t = {
         {1, 1, 0},
         {1, 0, 1},
@@ -26,17 +18,26 @@ int main()
         std::vector<T> output{x[2]};
         ds.addData(input, output);
     }
-    ///-----------------------------------
-    nn::Gym gym(n);
-    gym.train(ds, 100'000);
+}
+int main()
+{
+    //---- Setup network and data -------
+    nn::NeuralNetwork n{{2, 2, 1}};
+    n.rand();
 
+    nn::DataSet ds;
+    generateData(ds);
+
+    nn::Gym gym(n);
+    gym.train(ds, 50'000);
+    
+    // ---------------------PRINT-------------------------
     for (size_t i = 0; i < ds.size(); i++)
     {
         nn::Matrix acc = n.forward(ds.getInputMat(i));
-        std::vector<T> exp = ds.getData(i).output;
-#define test ds.getInputMat(i).data
-        std::cout << std::fixed << test[0] << " ^ " << test[1] << " = " << acc.data[0] << '\n';
+        auto value = ds.getInputMat(i).data;
+        std::cout << std::fixed << value[0] << " ^ " << value[1] << " = " << acc.data[0] << '\n';
     }
-    n.printWeights();
-    n.printBiases();
+    // n.printWeights();
+    // n.printBiases();
 }
