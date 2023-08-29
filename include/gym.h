@@ -5,9 +5,13 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
+
+#include "stb_image_write.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 namespace nn
 {
-
     class Gym
     {
     private:
@@ -43,6 +47,7 @@ namespace nn
         void drawing();
         void plotCost();
         void drawNetwork();
+        void upscale();
     };
     Gym::Gym(nn::NeuralNetwork &n) : n(n)
     {
@@ -57,6 +62,10 @@ namespace nn
 
         // thread computing cause drawing is slow
         std::thread t(&Gym::computing, this);
+#ifdef UPSCALE
+        std::thread t1(&Gym::upscale, this);
+        t1.join();
+#endif
         drawing();
         t.join();
     }
@@ -86,14 +95,43 @@ namespace nn
 
             costs[epoch] = n.cost(ds);
 
-           n.train(ds);
+            n.train(ds);
         }
     }
     void Gym::setup()
     {
-        SetTraceLogLevel(LOG_ERROR);
+        SetTraceLogLevel(LOG_NONE);
         InitWindow(screenWidth, screenHeight, windowName);
         SetTargetFPS(60);
+    }
+    void Gym::upscale()
+    {
+        int nr = 0;
+        while (true and !closed)
+        {
+            if (nr % 1 == 0)
+            {
+                size_t outWidth = 512;
+                size_t outHeight = 512;
+                NeuralNetwork m = n;
+                const char *outPath = "upscaled.png";
+                uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * outHeight * outWidth);
+                for (int y = 0; y < outHeight; y++)
+                    for (int x = 0; x < outWidth; x++)
+                    {
+                        nn::Matrix input{1, 2};
+                        input(0, 0) = nn::T(x) / (outWidth - 1.0);
+                        input(0, 1) = nn::T(y) / (outHeight - 1.0);
+                        nn::Matrix output = m.forward(input);
+
+                        uint8_t pixel = (uint8_t)(output(0, 0) * 255.0);
+                        outPixels[y * outWidth + x] = pixel;
+                    }
+                stbi_write_png(outPath, outWidth, outHeight, 1, outPixels, outWidth * (sizeof(*outPixels)));
+                free(outPixels);
+            }
+            nr++;
+        }
     }
     void Gym::drawing()
     {
@@ -181,6 +219,7 @@ namespace nn
     }
     void Gym::plotCost()
     {
+
         if (epoch == 0)
             return;
 
@@ -190,7 +229,7 @@ namespace nn
         T rectY = (screenHeight - h) / 2;
 
         T offX = w / epoch;
-        T offY = h / costs[0];
+        T offY = h / costs[1];
         T lastX = 0;
         T lastY = 0;
 
@@ -202,9 +241,9 @@ namespace nn
         {
             if (i != 0)
             {
-                DrawLine(rectX + lastX, rectY + lastY, rectX + lastX + offX, rectY + (costs[0] - costs[i]) * offY, RED);
+                DrawLine(rectX + lastX, rectY + lastY, rectX + lastX + offX, rectY + (costs[1] - costs[i]) * offY, RED);
                 lastX = lastX + offX;
-                lastY = (costs[0] - costs[i]) * offY;
+                lastY = (costs[1] - costs[i]) * offY;
             }
         }
     }
