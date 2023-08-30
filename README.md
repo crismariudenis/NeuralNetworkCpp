@@ -13,6 +13,8 @@ $ make run
 If the files aren't already built, this will build them as well.
 
 ## Demos
+### Upscale 
+![upscaleImages](./images/upscale.png)
 
 ### DigitLearn
 ![digitLearnImages](./images/digitLearn.png)
