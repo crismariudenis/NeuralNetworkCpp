@@ -59,7 +59,7 @@ int main()
 {
     nn::NeuralNetwork n{{2, 20, 1}};
     n.rand();
-    n.nrSamples = 28;
+    n.nrSamples = 2 * 28;
 
     nn::Gym gym(n);
 
@@ -67,7 +67,7 @@ int main()
     generateData(ds);
     ds.shuffle();
 
-    gym.train(ds, 50'000);
+    gym.train(ds, 80'000);
 
     display(n);
 }
