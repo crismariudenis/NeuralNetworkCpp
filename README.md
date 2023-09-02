@@ -69,7 +69,6 @@ https://github.com/crismariudenis/NeuralNetworkCpp/assets/78813212/89fe7598-73ad
                                                             108 254 102
                                                             108 218
 
-<<<<<<< HEAD
 
                                                     1   1   1   1   1   1
                                                     1   1   1   1   1   1
