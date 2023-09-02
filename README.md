@@ -62,7 +62,6 @@ https://github.com/crismariudenis/NeuralNetworkCpp/assets/78813212/89fe7598-73ad
                                                             108 254 102
                                                             108 218
 
-    
 
                                                                     1
             1   1                                               2   2
