@@ -2,15 +2,29 @@
 
 ## Quick Start
 
-### Build
-```console
-$ make build
-```
 ### Run
+If the files aren't already built, this will build them as well.
 ```console
 $ make run
 ```
-If the files aren't already built, this will build them as well.
+
+### Build
+Builds the specified file in the build directory.
+```console
+$ make build
+```
+### Build_All
+Builds all files in the build directory.
+```console
+$ make build_all
+```
+
+### Clean
+Removes all files in the build directory.
+```console
+$ make clean
+```
+
 
 ## Demos
 
