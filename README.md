@@ -41,6 +41,8 @@ https://github.com/crismariudenis/NeuralNetworkCpp/assets/78813212/89fe7598-73ad
 ### DigitLearn
 ![digitLearnImages](./images/digitLearn.png)
 ```console
+
+
                                             76  160 166 166 204 191 166 33
                                     117 242 254 254 254 254 206 215 254 247 128
                                 70  248 254 198 64  27  27  6   10  27  168 245 129
