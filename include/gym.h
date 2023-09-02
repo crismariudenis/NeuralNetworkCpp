@@ -14,28 +14,80 @@ namespace nn
 {
     class Gym
     {
+    public:
+        enum class Mode
+        {
+            NORMAL = 0,
+            UPSCALE,
+            TRANSITION
+        };
+
     private:
+        class Scroll
+        {
+            int x = 2 * screenWidth / 3;
+            int y = screenHeight - 200;
+            int w = 400;
+            int h = 10;
+            int r = 10;
+
+        public:
+            double knobX = 0.5;
+            bool dragging = false;
+
+        public:
+            void loop()
+            {
+                DrawRectangle(x, y, w, h, GRAY);
+                DrawCircle(x + w * knobX, y + h / 2, r, RED);
+                if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) and knobPressed())
+                    dragging = true;
+
+                if (dragging)
+                { // clamp
+                    int newX = std::min(x + w, std::max(x, GetMouseX()));
+                    knobX = (float)(newX - x) / float(w);
+                }
+                if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+                    dragging = false;
+            }
+            double getKnobX()
+            {
+                return knobX;
+            }
+
+        private:
+            bool knobPressed()
+            {
+                double d = std::sqrt((x + w * knobX - GetMouseX()) * (x + w * knobX - GetMouseX()) + (y - GetMouseY()) * (y - GetMouseY()));
+                return d < ((r / 2) + 10);
+            }
+
+        } scroll;
+
         class ImageTexture
         {
         private:
-            size_t x, y, w, h;
-            int screenWidth, screenHeight;
+            int x, y, w, h;
+            // int screenWidth, screenHeight;
             const char *path;
             Image img;
             Texture2D tex;
 
         public:
-            ImageTexture(size_t screenWidth, size_t screenHeight, size_t x, size_t y, size_t w, size_t h, const char *path) : screenWidth(screenWidth), screenHeight(screenHeight), x(x), y(y), w(w), h(h), path(path)
-            {
-            }
-            ImageTexture()
-            {
-            }
+            ImageTexture(int x, int y, int w, int h, const char *path) : x(x), y(y), w(w), h(h), path(path) {}
+            ImageTexture() {}
             void load()
             {
+                Texture2D temp;
                 img = LoadImage(path); // Load image data into CPU memory (RAM)
                 ImageResizeNN(&img, w, h);
-                tex = LoadTextureFromImage(img); // Image converted to texture, GPU memory (RAM -> VRAM)
+                temp = LoadTextureFromImage(img); // Image converted to texture, GPU memory (RAM -> VRAM)
+
+                if (!IsTextureReady(temp))
+                    return;
+
+                tex = temp;
                 UnloadImage(img);                // Unload image data from CPU memory (RAM)
                 img = LoadImageFromTexture(tex); // Load image from GPU texture (VRAM -> RAM)
                 UnloadTexture(tex);              // Unload texture from GPU memory (VRAM)
@@ -53,24 +105,18 @@ namespace nn
         };
         // Graphic data
         Color backgroundColor{0x18, 0x18, 0x18};
-        const int scale = 80;
-        const int screenWidth = 16 * scale;
-        const int screenHeight = 9 * scale;
+        static const int scale = 80;
+        static const int screenWidth = 16 * scale;
+        static const int screenHeight = 9 * scale;
         const char *windowName = "Neural Network";
-
+        const char *outputPath = "./data/out.png";
         // For the digit recognition
-#ifdef UPSCALE
-        Image inputImg, outputImg;
-        Texture2D inputTex, outputTex;
         const int imageWidth = 200;
         const int imageHeight = 200;
-        const int nrWindows = 3;
-        const char *outputPath = "./data/up9.png";
-        const char *inputPath = "./data/9.png";
+        int nrWindows = 2;
+        std::vector<ImageTexture> imgs;
         ImageTexture out, in;
-#else
-        const int nrWindows = 2;
-#endif
+        Mode mode = Mode::NORMAL;
 
         //  For the NeuralNetwork
         nn::NeuralNetwork &n;
@@ -89,7 +135,7 @@ namespace nn
         std::condition_variable cv;
 
     public:
-        Gym(nn::NeuralNetwork &n);
+        Gym(nn::NeuralNetwork &n, Mode mode);
 
         void setup();
         void train(nn::DataSet ds, size_t epochs);
@@ -98,9 +144,9 @@ namespace nn
         void plotCost();
         void drawNetwork();
         void upscale();
-        void drawImages();
+        void transition();
     };
-    Gym::Gym(nn::NeuralNetwork &n) : n(n)
+    Gym::Gym(nn::NeuralNetwork &n, Mode mode = Mode::NORMAL) : n(n), mode(mode)
     {
         setup();
     }
@@ -113,9 +159,21 @@ namespace nn
 
         // thread computing cause drawing is slow
         std::thread t1(&Gym::computing, this);
-        std::thread t2(&Gym::upscale, this);
+        std::thread t2;
+        switch (mode)
+        {
+        case Mode::UPSCALE:
+            t2 = std::thread(&Gym::upscale, this);
+            break;
+        case Mode::TRANSITION:
+            t2 = std::thread(&Gym::transition, this);
+            break;
+        case Mode::NORMAL:
+            break;
+        }
         drawing();
-        t2.join();
+        if (t2.joinable())
+            t2.join();
         t1.join();
     }
 
@@ -152,46 +210,30 @@ namespace nn
         SetTraceLogLevel(LOG_NONE);
         InitWindow(screenWidth, screenHeight, windowName);
         SetTargetFPS(60);
-#ifdef UPSCALE
-        size_t pad = 5;
-        in = ImageTexture{screenWidth, screenHeight, screenWidth - 400 -pad, 2 * screenHeight / 3 - 200, 200, 200, inputPath};
-        in.load();
 
-        out = ImageTexture{screenWidth, screenHeight, screenWidth - 200 - pad, 2 * screenHeight / 3 - 200, 200, 200, outputPath};
-        out.load();
-#endif
-    }
-    void Gym::upscale()
-    {
-#ifndef UPSCALE
-        return;
-#endif
-        int nr = 0;
-        while (true and !closed)
+        int pad = 20;
+        switch (mode)
         {
-            if (nr % 10 == 0)
-            {
-                NeuralNetwork m = n;
-                uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
-                for (int y = 0; y < imageHeight; y++)
-                    for (int x = 0; x < imageWidth; x++)
-                    {
-                        nn::Matrix input{1, 2};
-                        input(0, 0) = nn::T(x) / (imageWidth - 1.0);
-                        input(0, 1) = nn::T(y) / (imageHeight - 1.0);
-                        nn::Matrix output = m.forward(input);
+        case Mode::UPSCALE:
+            nrWindows = 3;
+            imgs.reserve(2);
+            imgs[0] = ImageTexture{screenWidth - 2 * imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/9.png"};
+            imgs[0].load();
+            imgs[1] = ImageTexture{screenWidth - imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, outputPath};
+            imgs[1].load();
 
-                        uint8_t pixel = (uint8_t)(output(0, 0) * 255.0);
-                        outPixels[y * imageHeight + x] = pixel;
-                    }
-                stbi_write_png(outputPath, imageWidth, imageHeight, 1, outPixels, imageWidth * (sizeof(*outPixels)));
-                free(outPixels);
-            }
-            nr++;
+            break;
+        case Mode::TRANSITION:
+            nrWindows = 3;
+            imgs.reserve(3);
+            imgs[0] = ImageTexture{2 * screenWidth / 3, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/9.png"};
+            imgs[0].load();
+            imgs[1] = ImageTexture{2 * screenWidth / 3 + imageWidth, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/8.png"};
+            imgs[1].load();
+            imgs[2] = ImageTexture{screenWidth - 3 * imageWidth / 2 - pad, 2 * screenHeight / 3 - 2 * imageHeight, imageWidth, imageHeight, outputPath};
+            imgs[2].load();
+            break;
         }
-    }
-    void Gym::drawImages()
-    {
     }
     void Gym::drawing()
     {
@@ -220,16 +262,26 @@ namespace nn
                 snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.cost(ds));
                 DrawText(buffer, 5, 0, 30, WHITE);
                 drawNetwork();
-                out.load();
-                out.draw();
-                in.draw();
+                switch (mode)
+                {
+                case Mode::UPSCALE:
+                    imgs[1].load();
+                    imgs[0].draw();
+                    imgs[1].draw();
+                    break;
+                case Mode::TRANSITION:
+                    imgs[0].draw();
+                    imgs[1].draw();
+                    imgs[2].load();
+                    imgs[2].draw();
+                    scroll.loop();
+                    break;
+                }
             }
             EndDrawing();
         }
-#ifdef UPSCALE
-        UnloadTexture(inputTex);
-        UnloadTexture(outputTex);
-#endif
+        for (auto &x : imgs)
+            x.unload();
         closed = true;
         CloseWindow();
     }
@@ -311,6 +363,61 @@ namespace nn
                 lastX = lastX + offX;
                 lastY = (costs[1] - costs[i]) * offY;
             }
+        }
+    }
+    void Gym::upscale()
+    {
+        int nr = 0;
+        while (!closed)
+        {
+            if (nr % 10 == 0)
+            {
+                NeuralNetwork m = n;
+                uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
+                for (int y = 0; y < imageHeight; y++)
+                    for (int x = 0; x < imageWidth; x++)
+                    {
+                        nn::Matrix input{1, 2};
+                        input(0, 0) = nn::T(x) / (imageWidth - 1.0);
+                        input(0, 1) = nn::T(y) / (imageHeight - 1.0);
+                        nn::Matrix output = m.forward(input);
+
+                        uint8_t pixel = (uint8_t)(output(0, 0) * 255.0);
+                        outPixels[y * imageHeight + x] = pixel;
+                    }
+                stbi_write_png(outputPath, imageWidth, imageHeight, 1, outPixels, imageWidth * (sizeof(*outPixels)));
+                free(outPixels);
+            }
+            nr++;
+        }
+    }
+    void Gym::transition()
+    {
+        int nr = 0;
+        while (!closed)
+        {
+            if (nr % 10 == 0)
+            {
+                size_t imageHeight = 28;
+                size_t imageWidth = 28;
+                NeuralNetwork m = n;
+                uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
+                for (int y = 0; y < imageHeight; y++)
+                    for (int x = 0; x < imageWidth; x++)
+                    {
+                        nn::Matrix input{1, 3};
+                        input(0, 0) = nn::T(x) / (imageWidth - 1.0);
+                        input(0, 1) = nn::T(y) / (imageHeight - 1.0);
+                        input(0, 2) = scroll.getKnobX();
+                        nn::Matrix output = m.forward(input);
+
+                        uint8_t pixel = (uint8_t)(output(0, 0) * 255.0);
+                        outPixels[y * imageHeight + x] = pixel;
+                    }
+                stbi_write_png(outputPath, imageWidth, imageHeight, 1, outPixels, imageWidth * (sizeof(*outPixels)));
+                free(outPixels);
+            }
+            nr++;
         }
     }
 }
