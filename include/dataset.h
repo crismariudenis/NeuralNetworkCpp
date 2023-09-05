@@ -90,11 +90,12 @@ namespace nn
             std::cout << '\n';
         }
     }
-    void DataSet::shuffle(){
-        // std::random_device rd;
-        // std::mt19937 g(rd());
-        
-        std::random_shuffle(data.begin(), data.end());
+    void DataSet::shuffle()
+    {
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        std::shuffle(data.begin(), data.end(), g);
     }
     Matrix DataSet::getInputMat(size_t index)
     {
