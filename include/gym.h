@@ -325,13 +325,13 @@ namespace nn
             for (size_t j = 0; j < arch[i]; j++)
             {
                 if (i == 0)
-                    DrawCircle(nodes[i][j].x, nodes[i][j].y, 10, GRAY);
+                    DrawCircleV(nodes[i][j], 10, GRAY);
                 else
                 {
                     T val = n.getBias(i - 1, j);
                     auto sigVal = 1 / (1 + exp(-val));
                     highColor.a = floor(255.f * sigVal);
-                    DrawCircle(nodes[i][j].x, nodes[i][j].y, 10, ColorAlphaBlend(lowColor, highColor, WHITE));
+                    DrawCircleV(nodes[i][j], 10, ColorAlphaBlend(lowColor, highColor, WHITE));
                 }
             }
     }
@@ -370,7 +370,7 @@ namespace nn
         int nr = 0;
         while (!closed)
         {
-            if (nr % 10 == 0)
+            if (nr % 10 == 0 )
             {
                 NeuralNetwork m = n;
                 uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
@@ -388,6 +388,7 @@ namespace nn
                 stbi_write_png(outputPath, imageWidth, imageHeight, 1, outPixels, imageWidth * (sizeof(*outPixels)));
                 free(outPixels);
             }
+            nr %= 10;
             nr++;
         }
     }
@@ -417,6 +418,7 @@ namespace nn
                 stbi_write_png(outputPath, imageWidth, imageHeight, 1, outPixels, imageWidth * (sizeof(*outPixels)));
                 free(outPixels);
             }
+            nr %= 10;
             nr++;
         }
     }
