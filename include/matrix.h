@@ -88,8 +88,8 @@ namespace nn
         assert(cols == m.rows);
         Matrix output{rows, m.cols};
         for (size_t r = 0; r < output.rows; r++)
-            for (size_t c = 0; c < output.cols; c++)
-                for (size_t k = 0; k < cols; k++)
+            for (size_t k = 0; k < cols; k++)
+                for (size_t c = 0; c < output.cols; c++)
                     output(r, c) += (*this)(r, k) * m(k, c);
         return (*this = output);
     }
