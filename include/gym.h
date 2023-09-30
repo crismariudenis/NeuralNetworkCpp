@@ -196,7 +196,7 @@ namespace nn
             }
             if (closed)
                 return;
-            while (paused && IsKeyUp(KEY_SPACE))
+            while (paused && IsKeyUp(KEY_SPACE) || n.isRandomizing)
             {
             }
 
@@ -259,7 +259,7 @@ namespace nn
 
                 plotCost();
                 char buffer[64];
-                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.cost(ds));
+                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.lastCost);
                 DrawText(buffer, 5, 0, 30, WHITE);
                 drawNetwork();
                 switch (mode)
