@@ -3,6 +3,7 @@
 #include <vector>
 #include "dataset.h"
 #include "matrix.h"
+#include <thread>
 namespace nn
 {
     class NeuralNetwork
@@ -14,9 +15,12 @@ namespace nn
         std::vector<Matrix> activations;
 
     public:
+        bool isRandomizing = false;
         double rate = 1;
         double eps = 1e-3;
         size_t nrSamples = 1;
+        T lastCost;
+
         NeuralNetwork(std::vector<size_t> arch);
         void rand();
         Matrix forward(Matrix input);
@@ -66,6 +70,7 @@ namespace nn
             activations[i] = input;
             input = (input * weights[i] + biases[i]).activate([](auto x)
                                                               { return 1.0 / (1.0 + exp(-x)); });
+
             // Sussy behaviour if I replace input with activations
         }
         activations.back() = input;
@@ -90,6 +95,7 @@ namespace nn
                 cost += d * d;
             }
         }
+        lastCost = cost / static_cast<T>(ds.size());
         return cost / static_cast<T>(ds.size());
     }
     void NeuralNetwork::train(DataSet &ds)
@@ -98,6 +104,11 @@ namespace nn
         auto start = ds.data.begin();
         auto end = ds.data.end();
         size_t remaining = ds.size();
+
+
+        isRandomizing = true;
+        ds.shuffle();
+        isRandomizing = false;
 
         // Stochastic Gradient Descent
         // dividing the dataset in equal batches
