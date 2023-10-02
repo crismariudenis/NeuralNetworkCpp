@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 #include "matrix.h"
 namespace nn
@@ -37,7 +38,7 @@ namespace nn
 
         DataSet &operator=(const DataSet &other);
 
-        size_t size();
+        size_t size() const;
         void addData(std::vector<T> &input, std::vector<T> &output);
         void shuffle();
 
@@ -62,7 +63,7 @@ namespace nn
         }
         return *this;
     }
-    size_t DataSet::size()
+    size_t DataSet::size() const
     {
         return data.size();
     }
@@ -79,13 +80,13 @@ namespace nn
     }
     void DataSet::print() const
     {
-        for (size_t i = 0; i < data.size(); i++)
+        for (const auto & i : data)
         {
             std::cout << "Input: ";
-            for (const auto &x : data[i].input)
+            for (const auto &x : i.input)
                 std::cout << x << " ";
             std::cout << "Output: ";
-            for (const auto &x : data[i].output)
+            for (const auto &x : i.output)
                 std::cout << x << " ";
             std::cout << '\n';
         }
@@ -94,7 +95,7 @@ namespace nn
     {
         std::random_device rd;
         std::mt19937 g(rd());
-
+        
         std::shuffle(data.begin(), data.end(), g);
     }
     Matrix DataSet::getInputMat(size_t index)

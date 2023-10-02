@@ -28,12 +28,14 @@ namespace nn
         Matrix activate(const std::function<T(const T &)> &function);
 
         T &operator()(size_t row, size_t col);
+        Matrix &operator*=(T x);
+        Matrix operator*(T x);
         Matrix &operator*=(Matrix &m);
         Matrix operator*(Matrix &m);
         Matrix &operator+=(Matrix &m);
         Matrix operator+(Matrix &m);
         Matrix &operator-=(Matrix &m);
-        Matrix operator-(Matrix &m);
+        Matrix operator-(const Matrix &m);
 
         void print();
         void printShape();
@@ -83,6 +85,21 @@ namespace nn
         assert(col < cols);
         return data[row * cols + col];
     }
+    Matrix &Matrix::operator*=(T x)
+    {
+        for (size_t r = 0; r < rows; r++)
+            for (size_t c = 0; c < cols; c++)
+                (*this)(r, c) *= x;
+        return (*this);
+    }
+    Matrix Matrix::operator*(T x)
+    {
+        Matrix output{rows, cols};
+        for (size_t r = 0; r < rows; r++)
+            for (size_t c = 0; c < cols; c++)
+                output(r, c) = (*this)(r, c) * x;
+        return output;
+    }
     Matrix &Matrix::operator*=(Matrix &m)
     {
         assert(cols == m.rows);
@@ -127,7 +144,7 @@ namespace nn
                 (*this)(r, c) -= m(r, c);
         return *this;
     }
-    Matrix Matrix::operator-(Matrix &m)
+    Matrix Matrix::operator-(const Matrix &m)
     {
         assert(shape == m.shape);
         Matrix output = m;

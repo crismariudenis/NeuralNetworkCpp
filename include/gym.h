@@ -138,7 +138,7 @@ namespace nn
         Gym(nn::NeuralNetwork &n, Mode mode);
 
         void setup();
-        void train(nn::DataSet ds, size_t epochs);
+        void train(const nn::DataSet &ds, size_t epochs);
         void computing();
         void drawing();
         void plotCost();
@@ -150,7 +150,7 @@ namespace nn
     {
         setup();
     }
-    void Gym::train(nn::DataSet ds, size_t epochs)
+    void Gym::train(const nn::DataSet &ds, size_t epochs)
     {
         this->epochs = epochs;
         this->ds = ds;
@@ -233,6 +233,8 @@ namespace nn
             imgs[2] = ImageTexture{screenWidth - 3 * imageWidth / 2 - pad, 2 * screenHeight / 3 - 2 * imageHeight, imageWidth, imageHeight, outputPath};
             imgs[2].load();
             break;
+            case Mode::NORMAL:
+                break;
         }
     }
     void Gym::drawing()
@@ -276,6 +278,8 @@ namespace nn
                     imgs[2].draw();
                     scroll.loop();
                     break;
+                    case Mode::NORMAL:
+                        break;
                 }
             }
             EndDrawing();

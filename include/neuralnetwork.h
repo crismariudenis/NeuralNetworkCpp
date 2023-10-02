@@ -105,7 +105,6 @@ namespace nn
         auto end = ds.data.end();
         size_t remaining = ds.size();
 
-
         isRandomizing = true;
         ds.shuffle();
         isRandomizing = false;
@@ -168,20 +167,20 @@ namespace nn
             }
         }
 
-        for (size_t i = 0; i < g.weights.size(); i++)
+        for (auto & weight : g.weights)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            g.weights[i] = g.weights[i].activate([n](auto x)
+            weight = weight.activate([n](auto x)
                                                  { return x / n; });
         }
-        for (size_t i = 0; i < g.biases.size(); i++)
+        for (auto & biase : g.biases)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            g.biases[i] = g.biases[i].activate([n](auto x)
+            biase = biase.activate([n](auto x)
                                                { return x / n; });
         }
 
