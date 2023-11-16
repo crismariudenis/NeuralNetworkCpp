@@ -217,7 +217,7 @@ namespace nn
         case Mode::UPSCALE:
             nrWindows = 3;
             imgs.reserve(2);
-            imgs[0] = ImageTexture{screenWidth - 2 * imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/9.png"};
+            imgs[0] = ImageTexture{screenWidth - 2 * imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/fishu.png"};
             imgs[0].load();
             imgs[1] = ImageTexture{screenWidth - imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, outputPath};
             imgs[1].load();
@@ -247,6 +247,10 @@ namespace nn
                 ClearBackground(backgroundColor);
                 if (IsKeyPressed(KEY_SPACE))
                     paused = !paused;
+                if(IsKeyPressed(KEY_RIGHT))
+                    n.rate *= 10;
+                if(IsKeyPressed(KEY_LEFT))
+                    n.rate *= 0.1;
                 if (IsKeyPressed(KEY_R))
                 {
                     restarted = true;
