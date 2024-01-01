@@ -1,6 +1,6 @@
 #include <iostream>
 #include "raylib.h"
-#include "../include/gym.h"
+#include "../include/gym.hpp"
 
 Image image1, image2;
 void generateData(nn::DataSet &ds)

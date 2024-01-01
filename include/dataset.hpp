@@ -3,7 +3,7 @@
 #include <fstream>
 #include <algorithm>
 
-#include "matrix.h"
+#include "matrix.hpp"
 namespace nn
 {
     struct DataPoint

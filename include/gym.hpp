@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include "neuralnetwork.h"
+#include "neuralnetwork.hpp"
 #include "raylib.h"
 #include <thread>
 #include <condition_variable>
@@ -233,8 +233,8 @@ namespace nn
             imgs[2] = ImageTexture{screenWidth - 3 * imageWidth / 2 - pad, 2 * screenHeight / 3 - 2 * imageHeight, imageWidth, imageHeight, outputPath};
             imgs[2].load();
             break;
-            case Mode::NORMAL:
-                break;
+        case Mode::NORMAL:
+            break;
         }
     }
     void Gym::drawing()
@@ -247,9 +247,9 @@ namespace nn
                 ClearBackground(backgroundColor);
                 if (IsKeyPressed(KEY_SPACE))
                     paused = !paused;
-                if(IsKeyPressed(KEY_RIGHT))
+                if (IsKeyPressed(KEY_RIGHT))
                     n.rate *= 10;
-                if(IsKeyPressed(KEY_LEFT))
+                if (IsKeyPressed(KEY_LEFT))
                     n.rate *= 0.1;
                 if (IsKeyPressed(KEY_R))
                 {
@@ -271,9 +271,9 @@ namespace nn
                 switch (mode)
                 {
                 case Mode::UPSCALE:
-                    imgs[1].load();
+                    //    imgs[1].load();
                     imgs[0].draw();
-                    imgs[1].draw();
+                    //     imgs[1].draw();
                     break;
                 case Mode::TRANSITION:
                     imgs[0].draw();
@@ -282,8 +282,8 @@ namespace nn
                     imgs[2].draw();
                     scroll.loop();
                     break;
-                    case Mode::NORMAL:
-                        break;
+                case Mode::NORMAL:
+                    break;
                 }
             }
             EndDrawing();
@@ -375,10 +375,12 @@ namespace nn
     }
     void Gym::upscale()
     {
+        size_t imageHeight = 800;
+        size_t imageWidth = 800;
         int nr = 0;
         while (!closed)
         {
-            if (nr % 10 == 0 )
+            if (nr % 10 == 0)
             {
                 NeuralNetwork m = n;
                 uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);

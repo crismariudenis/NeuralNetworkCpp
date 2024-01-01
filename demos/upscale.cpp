@@ -1,7 +1,7 @@
 #include <iostream>
 #include "raylib.h"
-#include "../include/gym.h"
-#include "../include/neuralnetwork.h"
+#include "../include/gym.hpp"
+#include "../include/neuralnetwork.hpp"
 
 Image image;
 void generateData(nn::DataSet &ds)

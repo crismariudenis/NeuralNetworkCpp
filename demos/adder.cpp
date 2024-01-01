@@ -1,6 +1,6 @@
 #include <iostream>
-#include "../include/gym.h"
-#include "../include/neuralnetwork.h"
+#include "../include/gym.hpp"
+#include "../include/neuralnetwork.hpp"
 
 typedef double T;
 

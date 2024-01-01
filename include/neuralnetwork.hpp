@@ -1,8 +1,8 @@
 
 #pragma once
 #include <vector>
-#include "dataset.h"
-#include "matrix.h"
+#include "dataset.hpp"
+#include "matrix.hpp"
 #include <thread>
 namespace nn
 {
@@ -68,10 +68,8 @@ namespace nn
         {
             // forward the input add activate using sigmoid function
             activations[i] = input;
-            input = (input * weights[i] + biases[i]).activate([](auto x)
-                                                              { return 1.0 / (1.0 + exp(-x)); });
-
-            // Sussy behaviour if I replace input with activations
+                input = (input * weights[i] + biases[i]).activate([](auto x)
+                                                                  { return 1.0 / (1.0 + exp(-x)); });
         }
         activations.back() = input;
 
@@ -106,7 +104,7 @@ namespace nn
         size_t remaining = ds.size();
 
         isRandomizing = true;
-        ds.shuffle();
+        // ds.shuffle();
         isRandomizing = false;
 
         // Stochastic Gradient Descent
@@ -155,6 +153,8 @@ namespace nn
                     T a = activations[l](0, i);
                     T da = g.activations[l](0, i);
                     T qa = a * (1 - a);
+
+
                     g.biases[l - 1](0, i) += 2 * da * qa;
                     for (size_t j = 0; j < arch[l - 1]; j++)
                     {
@@ -167,21 +167,21 @@ namespace nn
             }
         }
 
-        for (auto & weight : g.weights)
+        for (auto &weight : g.weights)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
             weight = weight.activate([n](auto x)
-                                                 { return x / n; });
+                                     { return x / n; });
         }
-        for (auto & biase : g.biases)
+        for (auto &biase : g.biases)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
             biase = biase.activate([n](auto x)
-                                               { return x / n; });
+                                   { return x / n; });
         }
 
         // learning
