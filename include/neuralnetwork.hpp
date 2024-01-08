@@ -10,11 +10,44 @@ namespace nn
     {
     private:
         std::vector<size_t> arch;
+        std::vector<Matrix> activations;
         std::vector<Matrix> biases;
         std::vector<Matrix> weights;
-        std::vector<Matrix> activations;
 
     public:
+        enum Activations
+        {
+            SIGMOID,
+            RELU
+        } act = Activations::SIGMOID;
+
+        std::function<T(T)> activateFunction()
+        {
+            switch (act)
+            {
+            case SIGMOID:
+                return [](T x)
+                { return 1.0 / (1.0 + exp(-x)); };
+            case RELU:
+                return [](T x)
+                { return x > 0.0 ? x : x * 0.01; };
+            default:
+                throw std::runtime_error("Unknown activation type");
+            }
+        }
+        T DactivateFunction(T x)
+        {
+            switch (act)
+            {
+            case SIGMOID:
+                return x * (1 - x);
+            case RELU:
+                return x >= 0 ? 1 : 0.01;
+            default:
+                throw std::runtime_error("Unknown activation type");
+            }
+        }
+
         bool isRandomizing = false;
         double rate = 1;
         double eps = 1e-3;
@@ -66,13 +99,10 @@ namespace nn
     {
         for (size_t i = 0; i < weights.size(); i++)
         {
-            // forward the input add activate using sigmoid function
             activations[i] = input;
-                input = (input * weights[i] + biases[i]).activate([](auto x)
-                                                                  { return 1.0 / (1.0 + exp(-x)); });
+            input = (input * weights[i] + biases[i]).activate(activateFunction());
         }
         activations.back() = input;
-
         return input;
     }
     T NeuralNetwork::cost(DataSet &ds)
@@ -152,16 +182,16 @@ namespace nn
                     // j = weight matrix col
                     T a = activations[l](0, i);
                     T da = g.activations[l](0, i);
-                    T qa = a * (1 - a);
-
+                    T qa = DactivateFunction(a);
 
                     g.biases[l - 1](0, i) += 2 * da * qa;
+
                     for (size_t j = 0; j < arch[l - 1]; j++)
                     {
                         T pa = activations[l - 1](0, j);
                         T w = weights[l - 1](j, i);
-                        g.weights[l - 1](j, i) += 2 * da * qa * pa;
-                        g.activations[l - 1](0, j) += 2 * da * qa * w;
+                        g.weights[l - 1](j, i) += 2.0 * da * qa * pa;
+                        g.activations[l - 1](0, j) += 2.0 * da * qa * w;
                     }
                 }
             }
@@ -172,16 +202,16 @@ namespace nn
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            weight = weight.activate([n](auto x)
-                                     { return x / n; });
+            weight = weight.activate([n](T x)
+                                     { return x / (T)n; });
         }
         for (auto &biase : g.biases)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            biase = biase.activate([n](auto x)
-                                   { return x / n; });
+            biase = biase.activate([n](T x)
+                                   { return x / (T)n; });
         }
 
         // learning
