@@ -217,7 +217,7 @@ namespace nn
         case Mode::UPSCALE:
             nrWindows = 3;
             imgs.reserve(2);
-            imgs[0] = ImageTexture{screenWidth - 2 * imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/fishu.png"};
+            imgs[0] = ImageTexture{screenWidth - 2 * imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, "./data/9.png"};
             imgs[0].load();
             imgs[1] = ImageTexture{screenWidth - imageWidth - pad, 2 * screenHeight / 3 - imageHeight, imageWidth, imageHeight, outputPath};
             imgs[1].load();
@@ -271,9 +271,9 @@ namespace nn
                 switch (mode)
                 {
                 case Mode::UPSCALE:
-                    //    imgs[1].load();
+                    imgs[1].load();
                     imgs[0].draw();
-                    //     imgs[1].draw();
+                    imgs[1].draw();
                     break;
                 case Mode::TRANSITION:
                     imgs[0].draw();
@@ -375,8 +375,6 @@ namespace nn
     }
     void Gym::upscale()
     {
-        size_t imageHeight = 800;
-        size_t imageWidth = 800;
         int nr = 0;
         while (!closed)
         {
