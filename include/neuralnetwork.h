@@ -68,8 +68,8 @@ namespace nn
         {
             // forward the input add activate using sigmoid function
             activations[i] = input;
-            input = (input * weights[i] + biases[i]).activate([](auto x)
-                                                              { return 1.0 / (1.0 + exp(-x)); });
+            (input * weights[i] + biases[i]).activate([](auto x)
+                                                      { return 1.0 / (1.0 + exp(-x)); });
 
             // Sussy behaviour if I replace input with activations
         }
@@ -105,9 +105,9 @@ namespace nn
         auto end = ds.data.end();
         size_t remaining = ds.size();
 
-        isRandomizing = true;
-        ds.shuffle();
-        isRandomizing = false;
+        // isRandomizing = true;
+        // ds.shuffle();
+        // isRandomizing = false;
 
         // Stochastic Gradient Descent
         // dividing the dataset in equal batches
@@ -167,21 +167,21 @@ namespace nn
             }
         }
 
-        for (auto & weight : g.weights)
+        for (auto &weight : g.weights)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
             weight = weight.activate([n](auto x)
-                                                 { return x / n; });
+                                     { return x / n; });
         }
-        for (auto & biase : g.biases)
+        for (auto &biase : g.biases)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
             biase = biase.activate([n](auto x)
-                                               { return x / n; });
+                                   { return x / n; });
         }
 
         // learning

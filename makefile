@@ -2,7 +2,7 @@
 #  -Wall   turns on most, but not all, compiler warnings
 #  -Wextra turns on even more compiler warnings
 CC = g++
-CFLAGS  =-g -std=c++17 -O3 -I include/ -L lib/
+CFLAGS  =-g -std=c++17 -O3 -I include/ -L lib/ -pg
 
 ifeq ($(OS),Windows_NT)
     LIBS =-lraylib -lgdi32 -lwinmm -pthread
@@ -11,7 +11,7 @@ else
 endif
 
 # Change this to the name of the file you want to compile
-FILE = xor
+FILE = adder
 TARGET = demos/$(FILE)
 EXECUTABLE=build/$(FILE)
 

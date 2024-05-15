@@ -80,7 +80,7 @@ namespace nn
     }
     void DataSet::print() const
     {
-        for (const auto & i : data)
+        for (const auto &i : data)
         {
             std::cout << "Input: ";
             for (const auto &x : i.input)
@@ -95,22 +95,18 @@ namespace nn
     {
         std::random_device rd;
         std::mt19937 g(rd());
-        
+
         std::shuffle(data.begin(), data.end(), g);
     }
     Matrix DataSet::getInputMat(size_t index)
     {
         assert(index < data.size());
-        Matrix m{1, data[0].input.size()};
-        m.data = data[index].input;
-        return m;
+        return data[index].getInputMat();
     }
     Matrix DataSet::getOutputMat(size_t index)
     {
-        Matrix m{1, data[0].output.size()};
-        for (size_t i = 0; i < data[index].output.size(); i++)
-            m(0, i) = data[index].output[i];
-        return m;
+        assert(index < data.size());
+        return data[index].getOutputMat();
     }
 
 }

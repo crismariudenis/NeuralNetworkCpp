@@ -25,17 +25,17 @@ namespace nn
 
         void rand();
         void fill(T value);
-        Matrix activate(const std::function<T(const T &)> &function);
+        Matrix &activate(const std::function<T(const T &)> &function);
 
         T &operator()(size_t row, size_t col);
         Matrix &operator*=(T x);
-        Matrix operator*(T x);
-        Matrix &operator*=(Matrix &m);
-        Matrix operator*(Matrix &m);
-        Matrix &operator+=(Matrix &m);
-        Matrix operator+(Matrix &m);
-        Matrix &operator-=(Matrix &m);
-        Matrix operator-(const Matrix &m);
+        Matrix &operator*(T x);
+        Matrix &operator*=(const Matrix &m);
+        Matrix &operator*(const Matrix &m);
+        Matrix &operator+=(const Matrix &m);
+        Matrix &operator+(const Matrix &m);
+        Matrix &operator-=(const Matrix &m);
+        Matrix &operator-(const Matrix &m);
 
         void print();
         void printShape();
@@ -70,13 +70,10 @@ namespace nn
     {
         std::fill(data.begin(), data.end(), value);
     }
-    Matrix Matrix::activate(const std::function<T(const T &)> &function)
+    Matrix &Matrix::activate(const std::function<T(const T &)> &function)
     {
-        Matrix output((*this));
-        for (size_t r = 0; r < rows; r++)
-            for (size_t c = 0; c < cols; c++)
-                output(r, c) = function((*this)(r, c));
-        return output;
+        std::transform(this->data.begin(), this->data.end(), this->data.begin(), function);
+        return *this;
     }
 
     T &Matrix::operator()(size_t row, size_t col)
@@ -87,69 +84,66 @@ namespace nn
     }
     Matrix &Matrix::operator*=(T x)
     {
-        for (size_t r = 0; r < rows; r++)
-            for (size_t c = 0; c < cols; c++)
-                (*this)(r, c) *= x;
-        return (*this);
+        std::transform(this->data.begin(), this->data.end(), this->data.begin(),
+                       [x](T elem)
+                       { return elem * x; });
+        return *this;
     }
-    Matrix Matrix::operator*(T x)
+    Matrix &Matrix::operator*(T x)
     {
-        Matrix output{rows, cols};
-        for (size_t r = 0; r < rows; r++)
-            for (size_t c = 0; c < cols; c++)
-                output(r, c) = (*this)(r, c) * x;
-        return output;
+        std::transform(this->data.begin(), this->data.end(), this->data.begin(),
+                       [x](T elem)
+                       { return elem * x; });
+        return *this;
     }
-    Matrix &Matrix::operator*=(Matrix &m)
+    Matrix &Matrix::operator*=(const Matrix &m)
     {
         assert(cols == m.rows);
-        Matrix output{rows, m.cols};
-        for (size_t r = 0; r < output.rows; r++)
+        std::vector<T> output_data(rows * m.cols);
+
+        for (size_t r = 0; r < rows; r++)
             for (size_t k = 0; k < cols; k++)
-                for (size_t c = 0; c < output.cols; c++)
-                    output(r, c) += (*this)(r, k) * m(k, c);
-        return (*this = output);
+                for (size_t c = 0; c < m.cols; c++)
+                    output_data[r * m.cols + c] += data[r * cols + k] * m.data[k * m.cols + c];
+
+        cols = m.cols;
+        shape = {rows, cols};
+        data.swap(output_data);
+        return *this;
     }
-    Matrix Matrix::operator*(Matrix &m)
+    Matrix& Matrix::operator*(const Matrix &m)
     {
         if (cols != m.rows)
-        {
             std::cout << "cols: {" << cols << "}, m.rows: {" << m.rows << "}\n";
-        }
+
         assert(cols == m.rows);
-        Matrix output = *this;
+        (*this) *= m;
 
-        return (output *= m);
-    }
-    Matrix &Matrix::operator+=(Matrix &m)
-    {
-        assert(shape == m.shape);
-        for (size_t r = 0; r < rows; r++)
-            for (size_t c = 0; c < cols; c++)
-                (*this)(r, c) += m(r, c);
         return *this;
     }
-    Matrix Matrix::operator+(Matrix &m)
+    Matrix &Matrix::operator+=(const Matrix &m)
     {
         assert(shape == m.shape);
-        Matrix output = m;
-
-        return (output += (*this));
-    }
-    Matrix &Matrix::operator-=(Matrix &m)
-    {
-        assert(shape == m.shape);
-        for (size_t r = 0; r < rows; r++)
-            for (size_t c = 0; c < cols; c++)
-                (*this)(r, c) -= m(r, c);
+        std::transform(this->data.begin(), this->data.end(), m.data.begin(), this->data.begin(), std::plus<T>());
         return *this;
     }
-    Matrix Matrix::operator-(const Matrix &m)
+    Matrix &Matrix::operator+(const Matrix &m)
     {
         assert(shape == m.shape);
-        Matrix output = m;
-
-        return (output -= (*this));
+        std::transform(this->data.begin(), this->data.end(), m.data.begin(), this->data.begin(), std::plus<T>());
+        return *this;
+    }
+    Matrix &Matrix::operator-=(const Matrix &m)
+    {
+        assert(shape == m.shape);
+        std::transform(this->data.begin(), this->data.end(), m.data.begin(), this->data.begin(), std::minus<T>());
+        return *this;
+    }
+    Matrix &Matrix::operator-(const Matrix &m)
+    {
+        assert(shape == m.shape);
+        std::transform(this->data.begin(), this->data.end(), m.data.begin(), this->data.begin(), std::minus<T>());
+        return *this;
     }
     void Matrix::printX(std::string name = "")
     {
