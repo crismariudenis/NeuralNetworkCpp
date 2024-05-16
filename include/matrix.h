@@ -22,20 +22,19 @@ namespace nn
 
         Matrix(size_t rows, size_t cols);
         Matrix();
-
         void rand();
         void fill(T value);
         Matrix &activate(const std::function<T(const T &)> &function);
 
         T &operator()(size_t row, size_t col);
-        Matrix &operator*=(T x);
-        Matrix &operator*(T x);
-        Matrix &operator*=(const Matrix &m);
-        Matrix &operator*(const Matrix &m);
-        Matrix &operator+=(const Matrix &m);
-        Matrix &operator+(const Matrix &m);
-        Matrix &operator-=(const Matrix &m);
-        Matrix &operator-(const Matrix &m);
+        inline Matrix &operator*=(T x);
+        inline Matrix &operator*(T x);
+        inline Matrix &operator*=(const Matrix &m);
+        inline Matrix &operator*(const Matrix &m);
+        inline Matrix &operator+=(const Matrix &m);
+        inline Matrix &operator+(const Matrix &m);
+        inline Matrix &operator-=(const Matrix &m);
+        inline Matrix &operator-(const Matrix &m);
 
         void print();
         void printShape();
@@ -111,7 +110,7 @@ namespace nn
         data.swap(output_data);
         return *this;
     }
-    Matrix& Matrix::operator*(const Matrix &m)
+    Matrix &Matrix::operator*(const Matrix &m)
     {
         if (cols != m.rows)
             std::cout << "cols: {" << cols << "}, m.rows: {" << m.rows << "}\n";

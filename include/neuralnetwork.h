@@ -86,8 +86,7 @@ namespace nn
             Matrix act = forward(ds.getInputMat(i));
 
             // expected value
-            Matrix exp{1, ds.getData(i).output.size()};
-            exp = ds.getOutputMat(i);
+            Matrix exp = ds.getOutputMat(i);
 
             for (size_t j = 0; j < act.data.size(); j++)
             {
@@ -133,8 +132,7 @@ namespace nn
             DataPoint &dp = *it;
 
             // expected value
-            Matrix exp{1, dp.output.size()};
-            exp = dp.getOutputMat();
+            Matrix exp = dp.getOutputMat();
 
             forward(dp.getInputMat());
             // return;
@@ -172,16 +170,16 @@ namespace nn
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            weight = weight.activate([n](auto x)
-                                     { return x / n; });
+            weight.activate([n](auto x)
+                            { return x / n; });
         }
         for (auto &biase : g.biases)
         {
             // sussy use of activate function :D
             // divide by the number of testcases
 
-            biase = biase.activate([n](auto x)
-                                   { return x / n; });
+            biase.activate([n](auto x)
+                           { return x / n; });
         }
 
         // learning
