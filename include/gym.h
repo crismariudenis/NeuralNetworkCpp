@@ -154,7 +154,8 @@ namespace nn
     {
         this->epochs = epochs;
         this->ds = ds;
-
+        if (epochs <= 0)
+            return;
         costs.resize(epochs);
 
         // thread computing cause drawing is slow
@@ -172,9 +173,11 @@ namespace nn
             break;
         }
         drawing();
+
         if (t2.joinable())
             t2.join();
-        t1.join();
+        if (t1.joinable())
+            t1.join();
     }
 
     void Gym::computing()
@@ -203,7 +206,6 @@ namespace nn
 
             n.train(ds);
         }
-        exit(0);
     }
     void Gym::setup()
     {
@@ -262,20 +264,22 @@ namespace nn
                         std::unique_lock<std::mutex> lk(m);
                     }
                 }
-
                 plotCost();
                 char buffer[64];
                 snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.lastCost);
                 DrawText(buffer, 5, 0, 30, WHITE);
+
                 drawNetwork();
                 switch (mode)
                 {
                 case Mode::UPSCALE:
+                    assert(imgs.size() > 1);
                     imgs[1].load();
                     imgs[0].draw();
                     imgs[1].draw();
                     break;
                 case Mode::TRANSITION:
+                    assert(imgs.size() > 2);
                     imgs[0].draw();
                     imgs[1].draw();
                     imgs[2].load();
