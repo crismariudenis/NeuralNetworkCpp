@@ -22,13 +22,15 @@ namespace nn
 
         Matrix(size_t rows, size_t cols);
         Matrix();
+        Matrix(const std::vector<std::vector<T>> &data);
+        Matrix(const std::vector<T> &data);
         void rand();
         void fill(T value);
         Matrix &activate(const std::function<T(const T &)> &function);
 
         T &operator()(size_t row, size_t col);
         inline Matrix &operator*=(T x);
-        inline Matrix &operator*(T x);
+        inline Matrix operator*(T x);
         inline Matrix &operator*=(const Matrix &m);
         inline Matrix &operator*(const Matrix &m);
         inline Matrix &operator+=(const Matrix &m);
@@ -48,6 +50,30 @@ namespace nn
     }
     Matrix::Matrix() : rows(0), cols(0) { shape = {rows, cols}; }
 
+    Matrix::Matrix(const std::vector<std::vector<T>> &data)
+    {
+        // Ensure all vectors have the same size
+        assert(!data.empty());
+        size_t expected_size = data[0].size();
+        for (const auto &row : data)
+            assert(row.size() == expected_size && "All rows must have the same number of columns");
+
+        rows = data.size();
+        cols = expected_size;
+        shape = {rows, cols};
+        this->data.reserve(rows * cols); // Reserve space for efficiency
+
+        for (const auto &row : data)
+            this->data.insert(this->data.end(), row.begin(), row.end());
+    }
+
+    Matrix::Matrix(const std::vector<T> &data) : data(data)
+    {
+        rows = 1;
+        cols = data.size();
+        shape = {rows, cols};
+    }
+
     void Matrix::rand()
     {
         std::random_device rd{};
@@ -60,7 +86,7 @@ namespace nn
 
         // fill each element w/ draw from distribution
         for (size_t r = 0; r < rows; ++r)
-            for (int c = 0; c < cols; ++c)
+            for (size_t c = 0; c < cols; ++c)
             {
                 (*this)(r, c) = d(gen);
             }
@@ -88,12 +114,13 @@ namespace nn
                        { return elem * x; });
         return *this;
     }
-    Matrix &Matrix::operator*(T x)
+    Matrix Matrix::operator*(T x)
     {
-        std::transform(this->data.begin(), this->data.end(), this->data.begin(),
+        Matrix result{rows, cols};
+        std::transform(data.begin(), data.end(), result.data.begin(),
                        [x](T elem)
                        { return elem * x; });
-        return *this;
+        return result;
     }
     Matrix &Matrix::operator*=(const Matrix &m)
     {
@@ -164,6 +191,7 @@ namespace nn
                 std::cout << (*this)(r, c) << " ";
         std::cout << '\n';
     }
+
     void Matrix::printShape()
     {
         std::cout << "Matrix Size([" << rows << ',' << cols << "])\n";
