@@ -121,8 +121,8 @@ namespace nn
     void NeuralNetwork::train(DataSet &ds, size_t epoch)
     {
         assert(nrSamples <= ds.size());
-        auto start = ds.data.begin();
-        auto end = ds.data.end();
+        auto start = ds.begin();
+        auto end = ds.end();
         size_t remaining = ds.size();
         // isRandomizing = true;
         // ds.shuffle();

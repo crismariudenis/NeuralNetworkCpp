@@ -46,6 +46,8 @@ namespace nn
         Matrix getInputMat(size_t index);
         Matrix getOutputMat(size_t index);
 
+        auto begin();
+        auto end();
         void print() const;
     };
     DataSet::DataSet() {}
@@ -77,6 +79,14 @@ namespace nn
     DataPoint &DataSet::getData(size_t index)
     {
         return data[index];
+    }
+    auto DataSet::end()
+    {
+        return data.end();
+    }
+    auto DataSet::begin()
+    {
+        return data.begin();
     }
     void DataSet::print() const
     {
