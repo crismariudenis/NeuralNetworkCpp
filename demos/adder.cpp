@@ -32,7 +32,6 @@ int main()
 {
     //---- Setup network and data -------
     nn::NeuralNetwork n{{2 * numbersLength, 4 * numbersLength, numbersLength + 1}};
-    n.rand();
 
     nn::DataSet ds;
     generateData(ds);
@@ -41,6 +40,7 @@ int main()
     gym.train(ds, 50'000);
 
     // ---------------------PRINT-------------------------
+    T diff = 0;
     for (size_t i = 0; i < ds.size(); i++)
     {
         nn::Matrix acc = n.forward(ds.getInputMat(i));

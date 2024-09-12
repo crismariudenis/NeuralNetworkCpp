@@ -23,7 +23,6 @@ int main()
 {
     //---- Setup network and data -------
     nn::NeuralNetwork n{{2, 2, 1}};
-    n.rand();
 
     nn::DataSet ds;
     generateData(ds);

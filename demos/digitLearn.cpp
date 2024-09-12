@@ -5,6 +5,7 @@
 Image image;
 void generateData(nn::DataSet &ds)
 {
+    SetTraceLogLevel(LOG_NONE);
     image = LoadImage("./data/9.png"); // Load image data into CPU memory (RAM)
 
     Color *colors = LoadImageColors(image);
@@ -51,15 +52,14 @@ void display(nn::NeuralNetwork &n)
 int main()
 {
     nn::NeuralNetwork n{{2, 7, 7, 1}};
-    n.rand();
-    n.nrSamples = 28;
+    n.setHyperparameters(1, 0.001, 0.75, 28);
 
-    nn::Gym gym(n);
 
     nn::DataSet ds;
     generateData(ds);
     ds.shuffle();
 
+    nn::Gym gym(n);
     gym.train(ds, 20'000);
 
     display(n);
