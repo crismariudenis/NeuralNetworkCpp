@@ -204,12 +204,11 @@ namespace nn
             }
             costs[epoch] = n.cost(ds);
 
-            n.train(ds);
+            n.train(ds,epoch);
         }
     }
     void Gym::setup()
     {
-        SetTraceLogLevel(LOG_NONE);
         InitWindow(screenWidth, screenHeight, windowName);
         SetTargetFPS(60);
 
@@ -265,21 +264,19 @@ namespace nn
                     }
                 }
                 plotCost();
-                char buffer[64];
-                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Cost: %f\n", epoch, epochs, n.rate, n.lastCost);
+                char buffer[100];
+                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Momentum: %f, Cost: %f\n", epoch, epochs, n.rate,n.momentum, n.lastCost);
                 DrawText(buffer, 5, 0, 30, WHITE);
 
                 drawNetwork();
                 switch (mode)
                 {
                 case Mode::UPSCALE:
-                    assert(imgs.size() > 1);
                     imgs[1].load();
                     imgs[0].draw();
                     imgs[1].draw();
                     break;
                 case Mode::TRANSITION:
-                    assert(imgs.size() > 2);
                     imgs[0].draw();
                     imgs[1].draw();
                     imgs[2].load();

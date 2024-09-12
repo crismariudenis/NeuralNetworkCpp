@@ -5,6 +5,7 @@
 Image image1, image2;
 void generateData(nn::DataSet &ds)
 {
+    SetTraceLogLevel(LOG_NONE);
 
     // Image 1
     image1 = LoadImage("./data/9.png");
@@ -56,15 +57,14 @@ void generateData(nn::DataSet &ds)
 int main()
 {
     nn::NeuralNetwork n{{3, 9, 9, 1}};
-    n.rand();
-    n.nrSamples = 4 * 28;
 
-    nn::Gym gym(n, nn::Gym::Mode::TRANSITION);
+    n.setHyperparameters(1, 0.001, 0.09, 4 * 28);
 
     nn::DataSet ds;
     generateData(ds);
 
     ds.shuffle();
+    nn::Gym gym{n, nn::Gym::Mode::TRANSITION};
 
     gym.train(ds, 10'000);
 }

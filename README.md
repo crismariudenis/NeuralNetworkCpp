@@ -24,16 +24,69 @@ Removes all files in the build directory.
 ```console
 $ make clean
 ```
+### Features
 
+- **Stochastic Gradient Descent (SGD)**: Implemented for efficient training.
+- **Momentum**: Added to accelerate SGD in the relevant direction and dampen oscillations.
+- **Learning Rate Decay**: Adjusts the learning rate over time to improve convergence.
+
+## Example code
+```cpp
+#include "gym.h"
+
+typedef double T;
+
+// Function to generate training data
+void generateData(nn::DataSet &ds)
+{
+    SetTraceLogLevel(LOG_NONE); // Use this for a cleaner console output
+    const std::vector<std::vector<T>> t = {
+        {1, 1, 0},
+        {1, 0, 1},
+        {0, 1, 1},
+        {0, 0, 0},
+    };
+
+    // Iterate through the data and add it to the dataset
+    for (const auto &x : t)
+    {
+        std::vector<T> input{x[0], x[1]}; // Create input vector
+        std::vector<T> output{x[2]};      // Create output vector
+        ds.addData(input, output);        // Add the input-output pair to the dataset
+    }
+}
+
+int main()
+{
+    // Define the architecture of the neural network
+    nn::NeuralNetwork n{{2, 2, 1}};
+
+    // Set hyperparameters for the neural network
+    n.setHyperparameters(1, 0.001, 0.9, 1);
+
+    // Create a dataset and generate training data
+    nn::DataSet ds;
+    generateData(ds);
+
+    // Create a Gym instance and train the neural network
+    nn::Gym gym{n};
+    gym.train(ds, 50'000);
+
+    // Create an input matrix and perform a forward pass
+    nn::Matrix input{{0, 1}};
+    nn::Matrix output = n.forward(input);
+
+    // Print the output matrix
+    output.printX();
+}
+```
+
+This section provides a clear and practical example of how to use the library, making it easier for users to understand how to implement it in their own projects.
 
 ## Demos
 
 ### Transition
 https://github.com/crismariudenis/NeuralNetworkCpp/assets/78813212/89fe7598-73ad-416c-ac12-94ff1306462c
-
-
-
-
 
 ### Upscale 
 ![upscaleImages](./images/upscale.png)
