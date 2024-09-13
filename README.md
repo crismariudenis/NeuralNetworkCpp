@@ -61,7 +61,7 @@ int main()
     // Define the architecture of the neural network
     nn::NeuralNetwork n{{2, 2, 1}};
 
-    // Set hyperparameters for the neural network
+    // Set hyperparameters for the neural network or leave them by default
     n.setHyperparameters(1, 0.001, 0.9, 1);
 
     // Create a dataset and generate training data
