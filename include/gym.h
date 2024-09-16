@@ -377,11 +377,13 @@ namespace nn
     void Gym::upscale()
     {
         int nr = 0;
+        NeuralNetwork m{n.getArch()};
         while (!closed)
         {
             if (nr % 10 == 0)
             {
-                NeuralNetwork m = n;
+                m.copyWeightsAndBiasesFrom(n);
+
                 uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
                 for (int y = 0; y < imageHeight; y++)
                     for (int x = 0; x < imageWidth; x++)
@@ -404,13 +406,16 @@ namespace nn
     void Gym::transition()
     {
         int nr = 0;
+        NeuralNetwork m{n.getArch()};
         while (!closed)
         {
             if (nr % 10 == 0)
             {
                 size_t imageHeight = 28;
                 size_t imageWidth = 28;
-                NeuralNetwork m = n;
+
+                m.copyWeightsAndBiasesFrom(n);
+
                 uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);
                 for (int y = 0; y < imageHeight; y++)
                     for (int x = 0; x < imageWidth; x++)

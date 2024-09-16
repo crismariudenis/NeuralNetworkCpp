@@ -46,6 +46,7 @@ namespace nn
         std::vector<size_t> getArch();
         T getBias(size_t layer, size_t nr);
         T getWeight(size_t layer1, size_t node1, size_t node2);
+        void copyWeightsAndBiasesFrom(const NeuralNetwork &other);
         void setHyperparameters(double initialRate, double decayRate, double momentum, size_t nrSamples);
     };
     NeuralNetwork::NeuralNetwork(std::vector<size_t> arch) : arch(arch)
@@ -298,6 +299,13 @@ namespace nn
     T NeuralNetwork::getWeight(size_t layer1, size_t node1, size_t node2)
     {
         return weights[layer1](node1, node2);
+    }
+
+    void NeuralNetwork::copyWeightsAndBiasesFrom(const NeuralNetwork &other)
+    {
+        assert(this->arch == other.arch);
+        this->weights = other.weights;
+        this->biases = other.biases;
     }
 
     void NeuralNetwork::setHyperparameters(double initialRate, double decayRate, double momentum, size_t nrSamples)
