@@ -203,9 +203,14 @@ namespace nn
             {
             }
             costs[epoch] = n.cost(ds);
-
-            n.train(ds,epoch);
+            n.train(ds, epoch);
+            while (!n.finished)
+                ;
         }
+
+#ifdef TIME
+        exit(0);
+#endif
     }
     void Gym::setup()
     {
@@ -265,7 +270,7 @@ namespace nn
                 }
                 plotCost();
                 char buffer[100];
-                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Momentum: %f, Cost: %f\n", epoch, epochs, n.rate,n.momentum, n.lastCost);
+                snprintf(buffer, sizeof(buffer), "Epoch: %zu/%zu, Rate: %f, Momentum: %f, Cost: %f\n", epoch, epochs, n.rate, n.momentum, n.lastCost);
                 DrawText(buffer, 5, 0, 30, WHITE);
 
                 drawNetwork();
@@ -413,7 +418,6 @@ namespace nn
             {
                 size_t imageHeight = 28;
                 size_t imageWidth = 28;
-
                 m.copyWeightsAndBiasesFrom(n);
 
                 uint8_t *outPixels = (uint8_t *)malloc(sizeof(*outPixels) * imageHeight * imageWidth);

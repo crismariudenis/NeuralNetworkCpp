@@ -3,6 +3,7 @@
 #  -Wextra turns on even more compiler warnings
 CC = g++
 CFLAGS  =-g -std=c++17 -O3 -I include/ -L lib/
+SHELL := $(shell if command -v fish > /dev/null 2>&1; then echo /usr/bin/fish; else echo /bin/bash; fi)
 
 ifeq ($(OS),Windows_NT)
     LIBS =-lraylib -lgdi32 -lwinmm -pthread
@@ -18,8 +19,15 @@ EXECUTABLE=build/$(FILE)
 run: build
 	./$(EXECUTABLE)
 	rm $(EXECUTABLE)
+
+time: build_with_file
+	time ./$(EXECUTABLE)
+	rm $(EXECUTABLE)
     
 build: $(EXECUTABLE)
+
+build_with_file: CFLAGS += -DTIME=1
+build_with_file: build
 
 $(EXECUTABLE): $(TARGET).cpp 
 	$(CC) $(TARGET).cpp -o $(EXECUTABLE) $(CFLAGS) $(LIBS)

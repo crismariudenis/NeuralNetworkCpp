@@ -39,7 +39,7 @@ namespace nn
         DataSet &operator=(const DataSet &other);
 
         size_t size() const;
-        void addData(std::vector<T> &input, std::vector<T> &output);
+        void addData(const std::vector<T> input, const std::vector<T> output);
         void shuffle();
 
         DataPoint &getData(size_t index);
@@ -69,7 +69,7 @@ namespace nn
     {
         return data.size();
     }
-    void DataSet::addData(std::vector<T> &input, std::vector<T> &output)
+    void DataSet::addData(const std::vector<T> input, const std::vector<T> output)
     {
         DataPoint dataPoint;
         dataPoint.input = input;
