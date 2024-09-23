@@ -23,8 +23,8 @@ namespace nn
         // Declare thread-local variables
         static thread_local std::vector<Matrix> g_weights;
         static thread_local std::vector<Matrix> g_biases;
-        // static thread_local std::vector<Matrix> v_weights; // Momentum weights
-        // static thread_local std::vector<Matrix> v_biases;  // Momentum biases
+        static thread_local std::vector<Matrix> v_weights; // Momentum weights
+        static thread_local std::vector<Matrix> v_biases;  // Momentum biases
         static thread_local std::vector<Matrix> g_activations;
         static thread_local std::vector<Matrix> t_activations;
 
@@ -34,7 +34,7 @@ namespace nn
         double decayRate = 0;
         size_t nrSamples = 1;
 
-        size_t nrThreads = 10;
+        size_t nrThreads = 1;
         std::vector<std::thread> threads;
         std::queue<std::function<void()>> tasks;
         std::mutex mtx;
@@ -54,10 +54,9 @@ namespace nn
         bool isRandomizing = false;
 
         double eps = 1e-3;
-        bool finished = true;
         T lastCost;
 
-        NeuralNetwork(std::vector<size_t> arch);
+        NeuralNetwork(std::vector<size_t> arch, size_t nrThreads);
         ~NeuralNetwork();
         void rand();
         Matrix forward(Matrix input);
@@ -82,10 +81,10 @@ namespace nn
     thread_local std::vector<Matrix> NeuralNetwork::g_biases;
     thread_local std::vector<Matrix> NeuralNetwork::g_activations;
     thread_local std::vector<Matrix> NeuralNetwork::t_activations; // Renamed to avoid conflict with member variable
-    // thread_local std::vector<Matrix> NeuralNetwork::v_weights;
-    // thread_local std::vector<Matrix> NeuralNetwork::v_biases;
-    
-    NeuralNetwork::NeuralNetwork(std::vector<size_t> arch) : arch(arch)
+    thread_local std::vector<Matrix> NeuralNetwork::v_weights;
+    thread_local std::vector<Matrix> NeuralNetwork::v_biases;
+
+    NeuralNetwork::NeuralNetwork(std::vector<size_t> arch, size_t nrThreads = 1) : arch(arch), nrThreads(nrThreads)
     {
         weights.resize(arch.size() - 1);
         biases.resize(arch.size() - 1);
@@ -106,6 +105,7 @@ namespace nn
 
         rand(); // Randomizing the weights and biases
     }
+
     NeuralNetwork::~NeuralNetwork()
     {
         {
@@ -130,6 +130,7 @@ namespace nn
         for (auto &b : biases)
             b.rand();
     }
+
     Matrix NeuralNetwork::forward(Matrix input)
     {
         for (size_t i = 0; i < weights.size(); i++)
@@ -166,6 +167,7 @@ namespace nn
         lastCost = cost / static_cast<T>(ds.size());
         return cost / static_cast<T>(ds.size());
     }
+
     void NeuralNetwork::threadFunction()
     {
 
@@ -213,8 +215,6 @@ namespace nn
 
     void NeuralNetwork::train(DataSet &ds, size_t epoch)
     {
-        finished = false;
-
         assert(nrSamples <= ds.size());
         auto start = ds.begin();
         auto end = ds.end();
@@ -237,15 +237,7 @@ namespace nn
             cv.wait(lock, [this]
                     { return tasks.empty(); });
         }
-
-        finished = true;
     }
-    // Todo: Instead of recreating all of them store them and just override them
-    // Todo: Search for more places to remove the lock.
-    // Todo: Read the momentum
-
-    // Todo: Maybe look into mearging thread& non-threaded.
-    // Todo: Make more functions private
 
     template <typename Iterator>
     void NeuralNetwork::threadBackProp(Iterator start, Iterator end)
@@ -253,29 +245,31 @@ namespace nn
         assert(start < end);
         size_t n = end - start;
 
-        // Declare and initialize gradient variables
+        // This code runs only one time for every thread
         if (g_weights.empty())
         {
             g_weights.resize(weights.size());
             g_biases.resize(biases.size());
             g_activations.resize(arch.size());
             t_activations.resize(arch.size());
+            v_weights.resize(weights.size());
+            v_biases.resize(biases.size());
+            for (size_t i = 0; i < weights.size(); ++i)
+            {
+                auto &[w_rows, w_cols] = weights[i].shape;
+                auto &[b_rows, b_cols] = biases[i].shape;
+
+                g_weights[i] = Matrix{w_rows, w_cols};
+                g_biases[i] = Matrix{b_rows, b_cols};
+                v_weights[i] = Matrix{w_rows, w_cols};
+                v_biases[i] = Matrix{b_rows, b_cols};
+            }
+            for (size_t i = 0; i < arch.size(); ++i)
+                g_activations[i] = Matrix{1, arch[i]};
+
+            for (size_t i = 0; i < arch.size(); i++)
+                t_activations[i] = Matrix{1, arch[i]};
         }
-
-        for (size_t i = 0; i < weights.size(); ++i)
-        {
-            auto &[w_rows, w_cols] = weights[i].shape;
-            auto &[b_rows, b_cols] = biases[i].shape;
-
-            g_weights[i] = Matrix{w_rows, w_cols};
-            g_biases[i] = Matrix{b_rows, b_cols};
-        }
-
-        for (size_t i = 0; i < arch.size(); ++i)
-            g_activations[i] = Matrix{1, arch[i]};
-
-        for (size_t i = 0; i < arch.size(); i++)
-            t_activations[i] = Matrix{1, arch[i]};
 
         // l = current layer
         // i = current activation
@@ -325,24 +319,21 @@ namespace nn
             g_biases[l].activate([n](auto x)
                                  { return x / n; });
 
-            // v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
-            // v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
+            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
+            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
         }
 
-        {
-            // std::unique_lock<std::mutex> lock(mtx);
-            for (size_t l = 0; l < weights.size(); ++l)
-            {
-                weights[l] -= g_weights[l] * rate;
-                biases[l] -= g_biases[l] * rate;
-                // weights[l] += v_weights[l];
-                // biases[l] += v_biases[l];
-            }
-        }
         {
             std::unique_lock<std::mutex> lock(mtx);
             if (tasks.empty())
                 cv.notify_all();
+            for (size_t l = 0; l < weights.size(); ++l)
+            {
+                g_weights[l].fill(0);
+                g_biases[l].fill(0);
+                weights[l] += v_weights[l];
+                biases[l] += v_biases[l];
+            }
         }
     }
 
@@ -418,12 +409,13 @@ namespace nn
             g_biases[l].activate([n](auto x)
                                  { return x / n; });
 
-            // v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
-            // v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
-            // weights[l] += v_weights[l];
-            // biases[l] += v_biases[l];
+            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
+            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
+            weights[l] += v_weights[l];
+            biases[l] += v_biases[l];
         }
     }
+
     void NeuralNetwork::finiteDiff(DataSet &ds)
     {
         // the original cost
@@ -475,6 +467,7 @@ namespace nn
             std::cout << arch[i] << ',';
         std::cout << arch.back() << "])\n";
     }
+    
     void NeuralNetwork::printWeights()
     {
         std::cout << "NeuralNetwork = [\n";
@@ -485,6 +478,7 @@ namespace nn
         }
         std::cout << "]\n";
     }
+
     void NeuralNetwork::printBiases()
     {
         std::cout << "NeuralNetwork = [\n";
@@ -497,10 +491,12 @@ namespace nn
     }
 
     std::vector<size_t> NeuralNetwork::getArch() { return arch; }
+
     T NeuralNetwork::getBias(size_t layer, size_t nr)
     {
         return biases[layer](0, nr);
     }
+
     T NeuralNetwork::getWeight(size_t layer1, size_t node1, size_t node2)
     {
         return weights[layer1](node1, node2);

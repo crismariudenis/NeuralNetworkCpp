@@ -29,6 +29,7 @@ $ make clean
 - **Stochastic Gradient Descent (SGD)**: Implemented for efficient training.
 - **Momentum**: Added to accelerate SGD in the relevant direction and dampen oscillations.
 - **Learning Rate Decay**: Adjusts the learning rate over time to improve convergence.
+- **HogBatching**: Implemented HOGWILD with mini-batching (HogBatching) for efficient parallel updates. For more details, refer to this [paper](https://people.ece.ubc.ca/matei/papers/ipdps16.pdf).
 
 ## Example code
 ```cpp
@@ -58,8 +59,9 @@ void generateData(nn::DataSet &ds)
 
 int main()
 {
-    // Define the architecture of the neural network
-    nn::NeuralNetwork n{{2, 2, 1}};
+    // Define the architecture of the neural network with 3 layers (input layer with 2 neurons, hidden layer with 2 neurons, and output layer with 1 neuron)
+    // and set the number of threads to 5 for parallel processing
+    nn::NeuralNetwork n{{2, 2, 1}, 5};
 
     // Set hyperparameters for the neural network or leave them by default
     n.setHyperparameters(1, 0.001, 0.9, 1);
@@ -88,7 +90,7 @@ This section provides a clear and practical example of how to use the library, m
 ### Transition
 https://github.com/crismariudenis/NeuralNetworkCpp/assets/78813212/89fe7598-73ad-416c-ac12-94ff1306462c
 
-### Upscale 
+### Upscale
 ![upscaleImages](./images/upscale.png)
 
 ### DigitLearn

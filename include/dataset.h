@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-
 #include "matrix.h"
 namespace nn
 {

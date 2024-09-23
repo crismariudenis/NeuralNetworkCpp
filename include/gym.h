@@ -204,8 +204,6 @@ namespace nn
             }
             costs[epoch] = n.cost(ds);
             n.train(ds, epoch);
-            while (!n.finished)
-                ;
         }
 
 #ifdef TIME
