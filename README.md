@@ -59,8 +59,8 @@ void generateData(nn::DataSet &ds)
 
 int main()
 {
-    // Define the architecture of the neural network with 3 layers (input layer with 2 neurons, hidden layer with 2 neurons, and output layer with 1 neuron)
-    // and set the number of threads to 5 for parallel processing
+    // Define the architecture of the neural network
+    // And set the number of threads for parallel processing
     nn::NeuralNetwork n{{2, 2, 1}, 5};
 
     // Set hyperparameters for the neural network or leave them by default
