@@ -251,10 +251,6 @@ namespace nn
                 ClearBackground(backgroundColor);
                 if (IsKeyPressed(KEY_SPACE))
                     paused = !paused;
-                if (IsKeyPressed(KEY_RIGHT))
-                    n.rate *= 10;
-                if (IsKeyPressed(KEY_LEFT))
-                    n.rate *= 0.1;
                 if (IsKeyPressed(KEY_R))
                 {
                     restarted = true;
