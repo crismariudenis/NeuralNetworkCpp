@@ -223,9 +223,6 @@ namespace nn
         for (size_t i = 0; i < weights.size(); i++)
         {
             // forward the input add activate using sigmoid function
-            // activations[i].printShape();
-            // input.printShape();
-            // std::cout << '\n';
             activations[i] = input;
             (input * weights[i] + biases[i]).activate([](auto x)
                                                       { return 1.0 / (1.0 + exp(-x)); });
