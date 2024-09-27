@@ -38,6 +38,7 @@ namespace nn
         std::vector<std::thread> threads;
         std::queue<std::function<void()>> tasks;
         std::mutex mtx;
+        std::mutex costMtx;
         std::condition_variable cv;
         std::atomic<bool> stop{false};
 
@@ -150,20 +151,50 @@ namespace nn
     T NeuralNetwork::cost(DataSet &ds)
     {
         T cost = 0;
-        for (size_t i = 0; i < ds.size(); i++)
+        std::atomic<size_t> tasksRemaining = 0;
+        std::condition_variable cv;
+        size_t step = ds.size() / nrThreads;
+        for (size_t i = 0; i < ds.size(); i += step)
         {
-            // actual value
-            Matrix act = forward(ds.getInputMat(i));
+            ++tasksRemaining;
+            addTask([this, step, i, &ds, &cost, &tasksRemaining, &cv]()
+                    {
 
-            // expected value
-            Matrix exp = ds.getOutputMat(i);
+            T localCost = 0;
+            for (size_t j = i; j < i + step && j < ds.size(); ++j) {
+                // actual value
+                Matrix act = forward(ds.getInputMat(j));
+                // expected value
+                Matrix exp = ds.getOutputMat(j);
 
-            for (size_t j = 0; j < act.data.size(); j++)
-            {
-                T d = act(0, j) - exp(0, j);
-                cost += d * d;
+                for (size_t k = 0; k < act.data.size(); ++k) {
+                    T d = act(0, k) - exp(0, k);
+                    localCost += d * d;
+                }
             }
+
+            {
+                std::lock_guard<std::mutex> costLock(costMtx);
+                cost += localCost;
+            }
+
+            // Decrement tasks remaining and notify if all tasks are done
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                if (--tasksRemaining == 0)
+                {
+                    cv.notify_one();
+                }
+            } });
         }
+
+        // Wait for all tasks to complete
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock, [&tasksRemaining]()
+                    { return tasksRemaining == 0; });
+        }
+
         lastCost = cost / static_cast<T>(ds.size());
         return cost / static_cast<T>(ds.size());
     }
@@ -189,10 +220,12 @@ namespace nn
 
     Matrix NeuralNetwork::threadForward(Matrix input, std::vector<Matrix> &activations)
     {
-
         for (size_t i = 0; i < weights.size(); i++)
         {
             // forward the input add activate using sigmoid function
+            // activations[i].printShape();
+            // input.printShape();
+            // std::cout << '\n';
             activations[i] = input;
             (input * weights[i] + biases[i]).activate([](auto x)
                                                       { return 1.0 / (1.0 + exp(-x)); });
@@ -467,7 +500,7 @@ namespace nn
             std::cout << arch[i] << ',';
         std::cout << arch.back() << "])\n";
     }
-    
+
     void NeuralNetwork::printWeights()
     {
         std::cout << "NeuralNetwork = [\n";
