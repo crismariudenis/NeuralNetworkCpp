@@ -344,26 +344,23 @@ namespace nn
         for (size_t l = 0; l < weights.size(); ++l)
         {
             // Average the gradients inline
-            g_weights[l].activate([n](auto x)
-                                  { return x / n; });
-            g_biases[l].activate([n](auto x)
-                                 { return x / n; });
+            v_weights[l] = v_weights[l] * momentum - g_weights[l] * (rate / n);
+            v_biases[l] = v_biases[l] * momentum - g_biases[l] * (rate / n);
 
-            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
-            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
+            g_weights[l].fill(0);
+            g_biases[l].fill(0);
         }
 
         {
             std::unique_lock<std::mutex> lock(mtx);
             if (tasks.empty())
                 cv.notify_all();
-            for (size_t l = 0; l < weights.size(); ++l)
-            {
-                g_weights[l].fill(0);
-                g_biases[l].fill(0);
-                weights[l] += v_weights[l];
-                biases[l] += v_biases[l];
-            }
+        }
+
+        for (size_t l = 0; l < weights.size(); ++l)
+        {
+            weights[l] += v_weights[l];
+            biases[l] += v_biases[l];
         }
     }
 
