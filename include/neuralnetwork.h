@@ -340,15 +340,21 @@ namespace nn
                 }
             }
         }
-        // Update weights and biases with momentum
+
+        T rate_avg = rate / n;
         for (size_t l = 0; l < weights.size(); ++l)
         {
-            // Average the gradients inline
-            v_weights[l] = v_weights[l] * momentum - g_weights[l] * (rate / n);
-            v_biases[l] = v_biases[l] * momentum - g_biases[l] * (rate / n);
+            // Update the momentum
+            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate_avg;
+            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate_avg;
 
+            // Reset the gradient
             g_weights[l].fill(0);
             g_biases[l].fill(0);
+
+            // Update global weights and biases
+            weights[l] += v_weights[l];
+            biases[l] += v_biases[l];
         }
 
         {
@@ -427,17 +433,15 @@ namespace nn
             }
         }
 
-        // Update weights and biases with momentum
+
+        T rate_avg = rate / n;
         for (size_t l = 0; l < weights.size(); ++l)
         {
-            // Average the gradients inline
-            g_weights[l].activate([n](auto x)
-                                  { return x / n; });
-            g_biases[l].activate([n](auto x)
-                                 { return x / n; });
+            // Update the momentum
+            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate_avg;
+            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate_avg;
 
-            v_weights[l] = v_weights[l] * momentum - g_weights[l] * rate;
-            v_biases[l] = v_biases[l] * momentum - g_biases[l] * rate;
+            // Update global weights and biases
             weights[l] += v_weights[l];
             biases[l] += v_biases[l];
         }
