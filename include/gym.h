@@ -202,6 +202,7 @@ namespace nn
             while (paused && IsKeyUp(KEY_SPACE) /*|| n.isRandomizing*/)
             {
             }
+            n.train(ds, epoch);
             costs[epoch] = n.cost(ds);
             n.train(ds, epoch);
         }
@@ -355,7 +356,7 @@ namespace nn
         T rectY = (screenHeight - h) / 2;
 
         T offX = w / epoch;
-        T offY = h / costs[1];
+        T offY = h / costs[0];
         T lastX = 0;
         T lastY = 0;
 
@@ -367,9 +368,9 @@ namespace nn
         {
             if (i != 0)
             {
-                DrawLine(rectX + lastX, rectY + lastY, rectX + lastX + offX, rectY + (costs[1] - costs[i]) * offY, RED);
+                DrawLine(rectX + lastX, rectY + lastY, rectX + lastX + offX, rectY + (costs[0] - costs[i]) * offY, RED);
                 lastX = lastX + offX;
-                lastY = (costs[1] - costs[i]) * offY;
+                lastY = (costs[0] - costs[i]) * offY;
             }
         }
     }
