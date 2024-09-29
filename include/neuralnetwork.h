@@ -362,12 +362,6 @@ namespace nn
             if (tasks.empty())
                 cv.notify_all();
         }
-
-        for (size_t l = 0; l < weights.size(); ++l)
-        {
-            weights[l] += v_weights[l];
-            biases[l] += v_biases[l];
-        }
     }
 
     template <typename Iterator>
