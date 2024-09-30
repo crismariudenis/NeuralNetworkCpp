@@ -295,10 +295,10 @@ namespace nn
                 v_biases[i] = Matrix{b_rows, b_cols};
             }
             for (size_t i = 0; i < arch.size(); ++i)
+            {
                 g_activations[i] = Matrix{1, arch[i]};
-
-            for (size_t i = 0; i < arch.size(); i++)
                 t_activations[i] = Matrix{1, arch[i]};
+            }
         }
 
         // l = current layer
