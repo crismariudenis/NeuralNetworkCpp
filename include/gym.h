@@ -204,7 +204,6 @@ namespace nn
             }
             n.train(ds, epoch);
             costs[epoch] = n.cost(ds);
-            n.train(ds, epoch);
         }
 
 #ifdef TIME
@@ -312,7 +311,7 @@ namespace nn
         for (size_t i = 0; i < arch.size(); i++)
         {
             float offY = h / (arch[i] + 1);
-            nodes[i].resize(arch[i]);
+            nodes[i].reserve(arch[i]);
             for (size_t j = 0; j < arch[i]; j++)
                 nodes[i][j] = {rectX + i * offX, rectY + (j + 1) * offY};
         }
