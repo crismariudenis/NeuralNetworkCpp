@@ -70,6 +70,7 @@ namespace nn
         void printArch();
         void printWeights();
         void printBiases();
+        void print();
 
         std::vector<size_t> getArch();
         T getBias(size_t layer, size_t nr);
@@ -513,6 +514,24 @@ namespace nn
             biases[i].printX("b" + std::to_string(i));
         }
         std::cout << "]\n";
+    }
+
+    void NeuralNetwork::print()
+    {
+        std::cout << "arch: ";
+        for (const auto &x : arch)
+            std::cout << x << " ";
+
+        std::cout << "\nbiases: ";
+        for (const auto &b : biases)
+            for (const auto &x : b.data)
+                std::cout << x << " ";
+
+        std::cout << "\nweights: ";
+        for (const auto &w : weights)
+            for (const auto &x : w.data)
+                std::cout << x << " ";
+        std::cout << '\n';
     }
 
     std::vector<size_t> NeuralNetwork::getArch() { return arch; }
