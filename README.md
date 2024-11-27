@@ -83,8 +83,6 @@ int main()
 }
 ```
 
-This section provides a clear and practical example of how to use the library, making it easier for users to understand how to implement it in their own projects.
-
 ## Demos
 
 ### Transition
